@@ -1,124 +1,858 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10251e"><title>LAZIZ Offline Sales Counter</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10251e">
+<link rel="manifest" href="./offline-manifest.json">
+<title>LAZIZ Offline Sales Counter</title>
+
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}.head{background:#10251e;color:#fff;padding:17px 4vw;display:flex;justify-content:space-between;align-items:center;gap:12px}.logo{font-size:21px;font-weight:900;letter-spacing:2px}.logo span{color:#e5bd69}.status{font-size:12px;color:#cfe4d5}.wrap{max-width:1200px;margin:24px auto;padding:0 18px}.intro{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}.intro h1{margin:0 0 5px;font-size:25px}.muted{color:#718078}.layout{display:grid;grid-template-columns:1fr 360px;gap:17px}.panel{background:white;border:1px solid #e1e9e3;border-radius:14px;padding:18px;box-shadow:0 8px 25px #142b1b0a}.search{width:100%;padding:15px;border:1px solid #dbe5de;border-radius:10px;font-size:17px;outline:none}.search:focus{border-color:#559b70;box-shadow:0 0 0 3px #e7f4eb}.suggest{position:relative}.suggestions{position:absolute;top:5px;left:0;right:0;background:white;z-index:3;border:1px solid #dbe5de;border-radius:10px;box-shadow:0 10px 25px #0002;max-height:270px;overflow:auto}.suggestion{display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid #edf1ee;cursor:pointer}.suggestion:hover{background:#f1f7f2}.line{display:grid;grid-template-columns:1.5fr .7fr .9fr .9fr 36px;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1ee}.line input{width:100%;padding:9px;border:1px solid #dce5df;border-radius:8px}.line-head{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#89958e;font-weight:800}.remove{border:0;background:#fff0f0;color:#ad4545;border-radius:8px;padding:8px}.totalrow{display:flex;justify-content:space-between;align-items:center;margin:20px 0 8px}.total{font-size:30px;font-weight:900}.btn{border:0;border-radius:9px;padding:13px 16px;background:#176b4b;color:white;font-weight:800;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.secondary{background:#edf3ef;color:#244236}.btn.paid{width:100%;font-size:17px;padding:17px}.field{margin:13px 0}.field label{display:block;font-size:11px;font-weight:800;color:#68776e;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border:1px solid #dce5df;border-radius:9px}.receipt{background:#f0f7f1;border:1px solid #dcebdd;padding:12px;border-radius:9px;font-size:12px;line-height:1.6}.empty{padding:35px;text-align:center;color:#829087}.notice{background:#fff6e5;color:#79581d;padding:12px;border-radius:9px;font-size:12px;line-height:1.6;margin-top:12px}.error{background:#fff0f0;color:#9b3030}.ok{background:#edf8ef;color:#245c36}@media(max-width:850px){.layout{grid-template-columns:1fr}.line{grid-template-columns:1.2fr .6fr .8fr .8fr 32px}.wrap{margin:15px auto}.intro{align-items:flex-start;flex-direction:column}}@media(max-width:500px){.line{grid-template-columns:1fr .55fr .75fr 32px}.line .line-total{display:none}.line-head .line-total{display:none}.total{font-size:25px}}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
+.head{background:#10251e;color:#fff;padding:17px 4vw;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.logo{font-size:21px;font-weight:900;letter-spacing:2px}
+.logo span{color:#e5bd69}
+.status{font-size:12px;color:#cfe4d5}
+.wrap{max-width:1200px;margin:24px auto;padding:0 18px}
+.intro{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
+.intro h1{margin:0 0 5px;font-size:25px}
+.muted{color:#718078}
+.layout{display:grid;grid-template-columns:1fr 360px;gap:17px}
+.panel{background:white;border:1px solid #e1e9e3;border-radius:14px;padding:18px;box-shadow:0 8px 25px #142b1b0a}
+.search{width:100%;padding:15px;border:1px solid #dbe5de;border-radius:10px;font-size:17px;outline:none}
+.search:focus{border-color:#559b70;box-shadow:0 0 0 3px #e7f4eb}
+.suggest{position:relative}
+.suggestions{position:absolute;top:5px;left:0;right:0;background:white;z-index:3;border:1px solid #dbe5de;border-radius:10px;box-shadow:0 10px 25px #0002;max-height:270px;overflow:auto}
+.suggestion{display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid #edf1ee;cursor:pointer}
+.suggestion:hover{background:#f1f7f2}
+.line{display:grid;grid-template-columns:1.5fr .7fr .9fr .9fr 36px;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1ee}
+.line input{width:100%;padding:9px;border:1px solid #dce5df;border-radius:8px}
+.line-head{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#89958e;font-weight:800}
+.remove{border:0;background:#fff0f0;color:#ad4545;border-radius:8px;padding:8px}
+.totalrow{display:flex;justify-content:space-between;align-items:center;margin:20px 0 8px}
+.total{font-size:30px;font-weight:900}
+.btn{border:0;border-radius:9px;padding:13px 16px;background:#176b4b;color:white;font-weight:800;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.secondary{background:#edf3ef;color:#244236}
+.btn.paid{width:100%;font-size:17px;padding:17px}
+.field{margin:13px 0}
+.field label{display:block;font-size:11px;font-weight:800;color:#68776e;margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px;border:1px solid #dce5df;border-radius:9px}
+.receipt{background:#f0f7f1;border:1px solid #dcebdd;padding:12px;border-radius:9px;font-size:12px;line-height:1.6}
+.empty{padding:35px;text-align:center;color:#829087}
+.notice{background:#fff6e5;color:#79581d;padding:12px;border-radius:9px;font-size:12px;line-height:1.6;margin-top:12px}
+.error{background:#fff0f0;color:#9b3030}
+.ok{background:#edf8ef;color:#245c36}
+@media(max-width:850px){
+.layout{grid-template-columns:1fr}
+.line{grid-template-columns:1.2fr .6fr .8fr .8fr 32px}
+.wrap{margin:15px auto}
+.intro{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:500px){
+.line{grid-template-columns:1fr .55fr .75fr 32px}
+.line .line-total{display:none}
+.line-head .line-total{display:none}
+.total{font-size:25px}
+}
 </style>
 </head>
+
 <body>
-<header class="head"><div class="logo">LAZIZ<span>.</span> <small style="font-size:11px;letter-spacing:0;color:#d4e0d8">SALES COUNTER</small></div><div class="status" id="connection">Connecting…</div></header>
+
+<header class="head">
+  <div class="logo">
+    LAZIZ<span>.</span>
+    <small style="font-size:11px;letter-spacing:0;color:#d4e0d8">
+      SALES COUNTER
+    </small>
+  </div>
+  <div class="status" id="connection">Starting offline app…</div>
+</header>
+
 <main class="wrap">
-<div class="intro"><div><h1>New customer sale</h1><div class="muted" id="business">Connecting to your LAZIZ business…</div></div><button class="btn secondary" onclick="location.href='index.html'">Main website</button></div>
+
+<div class="intro">
+  <div>
+    <h1>New customer sale</h1>
+    <div class="muted" id="business">Preparing your LAZIZ business…</div>
+  </div>
+</div>
+
 <div class="layout">
+
 <section class="panel">
-<div class="suggest"><input id="search" class="search" autocomplete="off" placeholder="Type product name or SKU…" disabled><div id="suggestions" class="suggestions" hidden></div></div>
-<div style="margin:18px 0 5px" class="line line-head"><span>Item</span><span>Qty</span><span>Unit price</span><span class="line-total">Line total</span><span></span></div>
-<div id="lines"><div class="empty">Loading your products…</div></div>
-<div class="notice" id="empty-note">Your actual products and prices will load from your LAZIZ business.</div>
+
+  <div class="suggest">
+    <input
+      id="search"
+      class="search"
+      autocomplete="off"
+      placeholder="Type product name or SKU…"
+      disabled
+    >
+    <div id="suggestions" class="suggestions" hidden></div>
+  </div>
+
+  <div style="margin:18px 0 5px" class="line line-head">
+    <span>Item</span>
+    <span>Qty</span>
+    <span>Unit price</span>
+    <span class="line-total">Line total</span>
+    <span></span>
+  </div>
+
+  <div id="lines">
+    <div class="empty">Loading your products…</div>
+  </div>
+
+  <div class="notice" id="empty-note">
+    Your actual products and prices will load from your LAZIZ business.
+  </div>
+
 </section>
+
 <aside class="panel">
-<h3 style="margin:0 0 5px">Sale summary</h3><div class="muted" style="font-size:12px">Review the items before payment.</div>
-<div class="field"><label>Customer name (optional)</label><input id="customer" placeholder="Walk-in customer"></div>
-<div class="field"><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>POS / Card</option><option>Credit</option></select></div>
-<div class="field"><label>Member / customer discount (₦)</label><input id="discount" type="number" min="0" step="0.01" value="0" oninput="renderTotals()" placeholder="Enter discount amount"></div>
-<div class="totalrow"><span class="muted">Subtotal</span><b id="subtotal">₦0</b></div><div class="totalrow"><span class="muted">Discount</span><b id="discount-view">−₦0</b></div><div class="totalrow"><span class="muted">Balance to pay</span><span class="total" id="grand">₦0</span></div>
-<button id="paid" class="btn paid" onclick="completeSale()" disabled>COMPLETE SALE</button><div id="feedback" style="margin-top:12px"></div>
-<div class="notice" id="queue-note">Offline sales are saved on this device and submitted securely when the internet returns. Keep this browser data intact until syncing finishes.</div>
-<button id="sync" class="btn secondary" style="width:100%;margin-top:10px" onclick="syncQueue()">Sync pending offline sales</button>
+
+  <h3 style="margin:0 0 5px">Sale summary</h3>
+
+  <div class="muted" style="font-size:12px">
+    Review the items before payment.
+  </div>
+
+  <div class="field">
+    <label>Customer name (optional)</label>
+    <input id="customer" placeholder="Walk-in customer">
+  </div>
+
+  <div class="field">
+    <label>Payment method</label>
+    <select id="payment">
+      <option>Cash</option>
+      <option>Bank transfer</option>
+      <option>POS / Card</option>
+      <option>Credit</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Member / customer discount (₦)</label>
+    <input
+      id="discount"
+      type="number"
+      min="0"
+      step="0.01"
+      value="0"
+      oninput="renderTotals()"
+      placeholder="Enter discount amount"
+    >
+  </div>
+
+  <div class="totalrow">
+    <span class="muted">Subtotal</span>
+    <b id="subtotal">₦0</b>
+  </div>
+
+  <div class="totalrow">
+    <span class="muted">Discount</span>
+    <b id="discount-view">−₦0</b>
+  </div>
+
+  <div class="totalrow">
+    <span class="muted">Balance to pay</span>
+    <span class="total" id="grand">₦0</span>
+  </div>
+
+  <button
+    id="paid"
+    class="btn paid"
+    onclick="completeSale()"
+    disabled
+  >
+    COMPLETE SALE
+  </button>
+
+  <div id="feedback" style="margin-top:12px"></div>
+
+  <div class="notice" id="queue-note">
+    Offline sales are saved on this device and submitted securely when the internet returns. Keep this browser data intact until syncing finishes.
+  </div>
+
+  <button
+    id="sync"
+    class="btn secondary"
+    style="width:100%;margin-top:10px"
+    onclick="syncQueue()"
+  >
+    Sync pending offline sales
+  </button>
+
 </aside>
-</div></main>
+</div>
+</main>
+
 <script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 'use strict';
-const $=s=>document.querySelector(s), fmt=n=>'₦'+Number(n||0).toLocaleString('en-NG',{maximumFractionDigits:2}), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const CACHE='laziz_pos_catalog_v2', QUEUE='laziz_pos_pending_v2';
-let sb=null, businessId=null, businessName='', products=[], cart=[], busy=false;
+
+const $=s=>document.querySelector(s);
+
+const fmt=n=>'₦'+Number(n||0).toLocaleString(
+  'en-NG',
+  {maximumFractionDigits:2}
+);
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+}[c]));
+
+const CACHE='laziz_pos_catalog_v2';
+const QUEUE='laziz_pos_pending_v2';
+
+let sb=null;
+let businessId=null;
+let businessName='';
+let products=[];
+let cart=[];
+let busy=false;
+
 let pending=readQueue();
-function readQueue(){try{return JSON.parse(localStorage.getItem(QUEUE)||'[]')}catch(e){return []}}
-function saveQueue(){localStorage.setItem(QUEUE,JSON.stringify(pending));updateQueueNote()}
-function say(message,kind=''){ $('#feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
-function updateStatus(){ $('#connection').textContent=(navigator.onLine?'Online':'Offline')+' · '+(sb?'LAZIZ connection':'waiting for connection') }
-function updateQueueNote(){ $('#queue-note').textContent=pending.length?pending.length+' offline sale(s) waiting to sync. Do not clear this browser data.':'No pending offline sales.' }
-function getCached(){try{return JSON.parse(localStorage.getItem(CACHE)||'null')}catch(e){return null}}
-function cacheCatalog(){localStorage.setItem(CACHE,JSON.stringify({businessId,businessName,products}))}
-function renderCatalog(){ $('#business').textContent=businessName||'Your LAZIZ business'; $('#empty-note').textContent=products.length?'Search your actual LAZIZ product catalogue by product name or SKU.':'No active products found. Add products in the main LAZIZ website first.'; $('#search').disabled=!products.length; $('#lines').innerHTML='<div class="empty">'+(products.length?'Start typing a product name or SKU.':'Your catalogue is empty.')+'</div>'}
+
+function readQueue(){
+  try{
+    return JSON.parse(localStorage.getItem(QUEUE)||'[]');
+  }catch(e){
+    return [];
+  }
+}
+
+function saveQueue(){
+  localStorage.setItem(QUEUE,JSON.stringify(pending));
+  updateQueueNote();
+}
+
+function say(message,kind=''){
+  $('#feedback').innerHTML=
+    `<div class="receipt ${kind}">${esc(message)}</div>`;
+}
+
+function updateStatus(){
+  $('#connection').textContent=
+    (navigator.onLine?'Online':'Offline')+
+    ' · '+
+    (sb?'LAZIZ connection':'waiting for connection');
+}
+
+function updateQueueNote(){
+  $('#queue-note').textContent=pending.length
+    ?pending.length+' offline sale(s) waiting to sync. Do not clear this browser data.'
+    :'No pending offline sales.';
+}
+
+function getCached(){
+  try{
+    return JSON.parse(localStorage.getItem(CACHE)||'null');
+  }catch(e){
+    return null;
+  }
+}
+
+function cacheCatalog(){
+  localStorage.setItem(CACHE,JSON.stringify({
+    businessId,
+    businessName,
+    products
+  }));
+}
+
+function renderCatalog(){
+  $('#business').textContent=
+    businessName||'Your LAZIZ business';
+
+  $('#empty-note').textContent=products.length
+    ?'Search your actual LAZIZ product catalogue by product name or SKU.'
+    :'No active products found. Add products in the owner dashboard first.';
+
+  $('#search').disabled=!products.length;
+
+  $('#lines').innerHTML=
+    '<div class="empty">'+
+    (products.length
+      ?'Start typing a product name or SKU.'
+      :'Your catalogue is empty.')+
+    '</div>';
+}
+
 async function start(){
- const cfg=window.LAZIZ_SUPABASE_CONFIG;
- if(!cfg?.url||!cfg?.publishableKey||!window.supabase?.createClient){say('Supabase setup is missing. Check supabase-config.js and the internet connection.','error');$('#business').textContent='Could not connect to LAZIZ.';return}
- sb=window.supabase.createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'laziz-auth-v1'}});
- updateStatus();
- const cached=getCached();
- if(cached){businessId=cached.businessId;businessName=cached.businessName;products=cached.products||[];renderCatalog()}
- if(!navigator.onLine){if(!cached)say('You are offline and this device has no saved product catalogue yet. Connect to the internet and open this page once.','error');return}
- try{
-  const {data:{session},error:sessionError}=await sb.auth.getSession();if(sessionError)throw sessionError;
-  if(!session?.user){$('#business').textContent='Please sign in to the main LAZIZ website first, using the same browser.';$('#search').disabled=true;say('No LAZIZ sign-in session found. Open the main website, sign in, then return here.','error');return}
-  const {data:membership,error:mErr}=await sb.from('business_members').select('business_id,role').eq('user_id',session.user.id).limit(1).maybeSingle();if(mErr)throw mErr;
-  if(!membership){say('This account has no business workspace membership. Sign in with the business owner account.','error');return}
-  businessId=membership.business_id;
-  const {data:b,error:bErr}=await sb.from('businesses').select('name').eq('id',businessId).single();if(bErr)throw bErr;businessName=b.name;
-  await refreshProducts();await syncQueue();
- }catch(e){console.error(e);say(e.message||'Could not load LAZIZ data.','error')}
+
+  const cached=getCached();
+
+  if(cached){
+    businessId=cached.businessId;
+    businessName=cached.businessName;
+    products=cached.products||[];
+    renderCatalog();
+  }
+
+  if(!navigator.onLine){
+    updateStatus();
+
+    if(!cached){
+      say(
+        'This device has no saved product catalogue yet. Connect to the internet and complete the initial business setup.',
+        'error'
+      );
+    }
+
+    return;
+  }
+
+  const cfg=window.LAZIZ_SUPABASE_CONFIG;
+
+  if(
+    !cfg?.url||
+    !cfg?.publishableKey||
+    !window.supabase?.createClient
+  ){
+    updateStatus();
+
+    say(
+      'Supabase setup is missing. Check supabase-config.js and your connection.',
+      'error'
+    );
+
+    return;
+  }
+
+  sb=window.supabase.createClient(
+    cfg.url,
+    cfg.publishableKey,
+    {
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true,
+        storageKey:'laziz-auth-v1'
+      }
+    }
+  );
+
+  updateStatus();
+
+  try{
+
+    const {
+      data:{session},
+      error:sessionError
+    }=await sb.auth.getSession();
+
+    if(sessionError)throw sessionError;
+
+    if(!session?.user){
+
+      $('#business').textContent=
+        'Initial business connection is required.';
+
+      say(
+        'No LAZIZ sign-in session found. The separate staff login will be added in the next stage.',
+        'error'
+      );
+
+      return;
+    }
+
+    const {
+      data:membership,
+      error:mErr
+    }=await sb
+      .from('business_members')
+      .select('business_id,role')
+      .eq('user_id',session.user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if(mErr)throw mErr;
+
+    if(!membership){
+      say(
+        'This account has no business workspace membership.',
+        'error'
+      );
+      return;
+    }
+
+    businessId=membership.business_id;
+
+    const {data:b,error:bErr}=await sb
+      .from('businesses')
+      .select('name')
+      .eq('id',businessId)
+      .single();
+
+    if(bErr)throw bErr;
+
+    businessName=b.name;
+
+    await refreshProducts();
+    await syncQueue();
+
+  }catch(e){
+    console.error(e);
+    say(e.message||'Could not load LAZIZ data.','error');
+  }
 }
+
 async function refreshProducts(){
- const {data,error}=await sb.from('products').select('id,name,sku,category,unit,price,quantity,reorder_level,active').eq('business_id',businessId).eq('active',true).order('name');
- if(error)throw error;
- products=(data||[]).map(p=>({...p,price:Number(p.price),quantity:Number(p.quantity),unit:p.unit||'unit'}));cacheCatalog();renderCatalog();updateStatus();
+
+  const {data,error}=await sb
+    .from('products')
+    .select(
+      'id,name,sku,category,unit,price,quantity,reorder_level,active'
+    )
+    .eq('business_id',businessId)
+    .eq('active',true)
+    .order('name');
+
+  if(error)throw error;
+
+  products=(data||[]).map(p=>({
+    ...p,
+    price:Number(p.price),
+    quantity:Number(p.quantity),
+    unit:p.unit||'unit'
+  }));
+
+  cacheCatalog();
+  renderCatalog();
+  updateStatus();
 }
-function findMatches(q){const term=q.trim().toLowerCase();return products.filter(p=>(p.name+' '+(p.sku||'')+' '+(p.category||'')).toLowerCase().includes(term))}
+
+function findMatches(q){
+
+  const term=q.trim().toLowerCase();
+
+  return products.filter(p=>
+    (
+      p.name+' '+
+      (p.sku||'')+' '+
+      (p.category||'')
+    ).toLowerCase().includes(term)
+  );
+}
+
 $('#search').addEventListener('input',e=>{
- const q=e.target.value.trim(),box=$('#suggestions');if(!q){box.hidden=true;return}
- const list=findMatches(q).slice(0,15);
- box.innerHTML=list.map(p=>`<div class="suggestion" data-id="${esc(p.id)}"><span><b>${esc(p.name)}</b><br><small>${esc(p.sku||p.category||'')}</small></span><span style="text-align:right"><b>${fmt(p.price)}</b><br><small>per ${esc(p.unit)} · ${p.quantity} available</small></span></div>`).join('')||'<div class="suggestion">No matching product found.</div>';
- box.hidden=false;
+
+  const q=e.target.value.trim();
+  const box=$('#suggestions');
+
+  if(!q){
+    box.hidden=true;
+    return;
+  }
+
+  const list=findMatches(q).slice(0,15);
+
+  box.innerHTML=list.map(p=>`
+    <div class="suggestion" data-id="${esc(p.id)}">
+      <span>
+        <b>${esc(p.name)}</b><br>
+        <small>${esc(p.sku||p.category||'')}</small>
+      </span>
+      <span style="text-align:right">
+        <b>${fmt(p.price)}</b><br>
+        <small>
+          per ${esc(p.unit)} · ${p.quantity} available
+        </small>
+      </span>
+    </div>
+  `).join('')||
+  '<div class="suggestion">No matching product found.</div>';
+
+  box.hidden=false;
 });
-$('#suggestions').addEventListener('click',e=>{const row=e.target.closest('.suggestion[data-id]');if(row)addItem(row.dataset.id)});
-document.addEventListener('click',e=>{if(!e.target.closest('.suggest'))$('#suggestions').hidden=true});
-function addItem(id){const p=products.find(x=>x.id===id);if(!p)return;const line=cart.find(x=>x.id===id);if(line)line.qty+=1;else cart.push({id,qty:1});$('#search').value='';$('#suggestions').hidden=true;render()}
-function subtotal(){return cart.reduce((sum,l)=>{const p=products.find(x=>x.id===l.id);return sum+(p?p.price*l.qty:0)},0)}
-function renderTotals(){const sub=subtotal(),raw=Number($('#discount').value||0),disc=Math.max(0,Math.min(raw,sub));$('#subtotal').textContent=fmt(sub);$('#discount-view').textContent='−'+fmt(disc);$('#grand').textContent=fmt(sub-disc);$('#paid').disabled=busy||!cart.length||sub<=0||!Number.isFinite(raw)||raw<0||raw>sub}
-function render(){if(!cart.length){$('#lines').innerHTML='<div class="empty">No items added yet.</div>';renderTotals();return}
- $('#lines').innerHTML=cart.map(l=>{const p=products.find(x=>x.id===l.id);if(!p)return '';return `<div class="line"><span><b>${esc(p.name)}</b><br><small class="muted">per ${esc(p.unit)}</small></span><span><input type="number" min="0.001" step="0.001" value="${l.qty}" data-qty="${esc(l.id)}"></span><span>${fmt(p.price)}</span><span class="line-total"><b>${fmt(p.price*l.qty)}</b></span><button class="remove" data-remove="${esc(l.id)}">×</button></div>`}).join('');
- renderTotals()
+
+$('#suggestions').addEventListener('click',e=>{
+  const row=e.target.closest('.suggestion[data-id]');
+  if(row)addItem(row.dataset.id);
+});
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.suggest')){
+    $('#suggestions').hidden=true;
+  }
+});
+
+function addItem(id){
+
+  const p=products.find(x=>x.id===id);
+  if(!p)return;
+
+  const line=cart.find(x=>x.id===id);
+
+  if(line){
+    line.qty+=1;
+  }else{
+    cart.push({id,qty:1});
+  }
+
+  $('#search').value='';
+  $('#suggestions').hidden=true;
+
+  render();
 }
-$('#lines').addEventListener('change',e=>{const id=e.target.dataset.qty;if(!id)return;const n=Number(e.target.value);if(!Number.isFinite(n)||n<=0){say('Enter a quantity greater than zero.','error');return render()}const l=cart.find(x=>x.id===id);if(l)l.qty=n;render()});
-$('#lines').addEventListener('click',e=>{const id=e.target.dataset.remove;if(id){cart=cart.filter(x=>x.id!==id);render()}});
-function transactionId(){return crypto.randomUUID?crypto.randomUUID():'laziz-'+Date.now()+'-'+Math.random().toString(36).slice(2)}
-function newReceipt(){return 'LZ-'+Date.now().toString().slice(-8)}
+
+function subtotal(){
+
+  return cart.reduce((sum,l)=>{
+    const p=products.find(x=>x.id===l.id);
+    return sum+(p?p.price*l.qty:0);
+  },0);
+}
+
+function renderTotals(){
+
+  const sub=subtotal();
+  const raw=Number($('#discount').value||0);
+  const disc=Math.max(0,Math.min(raw,sub));
+
+  $('#subtotal').textContent=fmt(sub);
+  $('#discount-view').textContent='−'+fmt(disc);
+  $('#grand').textContent=fmt(sub-disc);
+
+  $('#paid').disabled=
+    busy||
+    !cart.length||
+    sub<=0||
+    !Number.isFinite(raw)||
+    raw<0||
+    raw>sub;
+}
+
+function render(){
+
+  if(!cart.length){
+    $('#lines').innerHTML=
+      '<div class="empty">No items added yet.</div>';
+
+    renderTotals();
+    return;
+  }
+
+  $('#lines').innerHTML=cart.map(l=>{
+
+    const p=products.find(x=>x.id===l.id);
+    if(!p)return '';
+
+    return `
+      <div class="line">
+        <span>
+          <b>${esc(p.name)}</b><br>
+          <small class="muted">per ${esc(p.unit)}</small>
+        </span>
+
+        <span>
+          <input
+            type="number"
+            min="0.001"
+            step="0.001"
+            value="${l.qty}"
+            data-qty="${esc(l.id)}"
+          >
+        </span>
+
+        <span>${fmt(p.price)}</span>
+
+        <span class="line-total">
+          <b>${fmt(p.price*l.qty)}</b>
+        </span>
+
+        <button class="remove" data-remove="${esc(l.id)}">
+          ×
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  renderTotals();
+}
+
+$('#lines').addEventListener('change',e=>{
+
+  const id=e.target.dataset.qty;
+  if(!id)return;
+
+  const n=Number(e.target.value);
+
+  if(!Number.isFinite(n)||n<=0){
+    say('Enter a quantity greater than zero.','error');
+    return render();
+  }
+
+  const l=cart.find(x=>x.id===id);
+  if(l)l.qty=n;
+
+  render();
+});
+
+$('#lines').addEventListener('click',e=>{
+
+  const id=e.target.dataset.remove;
+
+  if(id){
+    cart=cart.filter(x=>x.id!==id);
+    render();
+  }
+});
+
+function transactionId(){
+
+  return crypto.randomUUID
+    ?crypto.randomUUID()
+    :'laziz-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+}
+
+function newReceipt(){
+  return 'LZ-'+Date.now().toString().slice(-8);
+}
+
 async function sendSale(sale){
- const {data,error}=await sb.rpc('create_sale_atomic',{p_business_id:sale.businessId,p_receipt_no:sale.receipt,p_customer_name:sale.customer,p_payment_method:sale.payment,p_discount:sale.discount,p_client_transaction_id:sale.transactionId,p_items:sale.items.map(i=>({product_id:i.id,quantity:i.qty})),p_source:sale.source});
- if(error)throw error;return data
+
+  const {data,error}=await sb.rpc(
+    'create_sale_atomic',
+    {
+      p_business_id:sale.businessId,
+      p_receipt_no:sale.receipt,
+      p_customer_name:sale.customer,
+      p_payment_method:sale.payment,
+      p_discount:sale.discount,
+      p_client_transaction_id:sale.transactionId,
+      p_items:sale.items.map(i=>({
+        product_id:i.id,
+        quantity:i.qty
+      })),
+      p_source:sale.source
+    }
+  );
+
+  if(error)throw error;
+
+  return data;
 }
+
 async function completeSale(){
- if(busy||!cart.length)return;
- const sub=subtotal(),discount=Number($('#discount').value||0);
- if(!Number.isFinite(discount)||discount<0||discount>sub){say('Discount must be between ₦0 and the subtotal.','error');return}
- for(const l of cart){const p=products.find(x=>x.id===l.id);if(!p||p.quantity<l.qty){say('Not enough saved stock for '+(p?.name||'an item')+'. Refresh the catalogue before continuing.','error');return}}
- const sale={businessId,receipt:newReceipt(),transactionId:transactionId(),customer:$('#customer').value.trim(),payment:$('#payment').value,discount,items:cart.map(l=>({id:l.id,qty:l.qty})),source:navigator.onLine?'online':'offline_sync',createdAt:new Date().toISOString()};
- busy=true;renderTotals();$('#paid').textContent='PLEASE WAIT…';
- try{
-  if(navigator.onLine&&sb){await sendSale(sale);say('Sale saved securely. Stock has been updated in LAZIZ.','ok');await refreshProducts()}
-  else{pending.push(sale);saveQueue();sale.items.forEach(l=>{const p=products.find(x=>x.id===l.id);if(p)p.quantity-=l.qty});cacheCatalog();say('Sale saved on this device. It will sync when internet returns.','ok')}
-  cart=[];$('#customer').value='';$('#discount').value='0';render();
- }catch(e){console.error(e);say(e.message||'Sale could not be saved. No local sale was recorded.','error')}
- finally{busy=false;$('#paid').textContent='COMPLETE SALE';renderTotals();updateStatus()}
+
+  if(busy||!cart.length)return;
+
+  if(!businessId){
+    say(
+      'This device has not been connected to a LAZIZ business yet.',
+      'error'
+    );
+    return;
+  }
+
+  const sub=subtotal();
+  const discount=Number($('#discount').value||0);
+
+  if(
+    !Number.isFinite(discount)||
+    discount<0||
+    discount>sub
+  ){
+    say(
+      'Discount must be between ₦0 and the subtotal.',
+      'error'
+    );
+    return;
+  }
+
+  for(const l of cart){
+
+    const p=products.find(x=>x.id===l.id);
+
+    if(!p||p.quantity<l.qty){
+      say(
+        'Not enough saved stock for '+
+        (p?.name||'an item')+
+        '. Refresh the catalogue before continuing.',
+        'error'
+      );
+      return;
+    }
+  }
+
+  const sale={
+    businessId,
+    receipt:newReceipt(),
+    transactionId:transactionId(),
+    customer:$('#customer').value.trim(),
+    payment:$('#payment').value,
+    discount,
+    items:cart.map(l=>({
+      id:l.id,
+      qty:l.qty
+    })),
+    source:navigator.onLine?'online':'offline_sync',
+    createdAt:new Date().toISOString()
+  };
+
+  busy=true;
+  renderTotals();
+  $('#paid').textContent='PLEASE WAIT…';
+
+  try{
+
+    if(navigator.onLine&&sb){
+
+      await sendSale(sale);
+
+      say(
+        'Sale saved securely. Stock has been updated in LAZIZ.',
+        'ok'
+      );
+
+      await refreshProducts();
+
+    }else{
+
+      pending.push(sale);
+      saveQueue();
+
+      sale.items.forEach(l=>{
+        const p=products.find(x=>x.id===l.id);
+        if(p)p.quantity-=l.qty;
+      });
+
+      cacheCatalog();
+
+      say(
+        'Sale saved on this device. It will sync when internet returns.',
+        'ok'
+      );
+    }
+
+    cart=[];
+    $('#customer').value='';
+    $('#discount').value='0';
+
+    render();
+
+  }catch(e){
+
+    console.error(e);
+
+    say(
+      e.message||'Sale could not be saved. No local sale was recorded.',
+      'error'
+    );
+
+  }finally{
+
+    busy=false;
+    $('#paid').textContent='COMPLETE SALE';
+    renderTotals();
+    updateStatus();
+  }
 }
+
 async function syncQueue(){
- if(!navigator.onLine||!sb||!businessId){updateQueueNote();return}
- let changed=false;
- for(let i=0;i<pending.length;){
-  const sale=pending[i];
-  if(sale.businessId!==businessId){i++;continue}
-  try{sale.source='offline_sync';await sendSale(sale);pending.splice(i,1);changed=true}
-  catch(e){console.error('Offline sale sync failed:',e);say('A pending sale could not sync yet: '+(e.message||'Please check stock and connection.'),'error');break}
- }
- if(changed){saveQueue();await refreshProducts();say('Pending offline sales synced successfully.','ok')}
- updateQueueNote()
+
+  if(!navigator.onLine||!sb||!businessId){
+    updateQueueNote();
+    return;
+  }
+
+  let changed=false;
+
+  for(let i=0;i<pending.length;){
+
+    const sale=pending[i];
+
+    if(sale.businessId!==businessId){
+      i++;
+      continue;
+    }
+
+    try{
+
+      sale.source='offline_sync';
+
+      await sendSale(sale);
+
+      pending.splice(i,1);
+      changed=true;
+
+    }catch(e){
+
+      console.error('Offline sale sync failed:',e);
+
+      say(
+        'A pending sale could not sync yet: '+
+        (e.message||'Please check stock and connection.'),
+        'error'
+      );
+
+      break;
+    }
+  }
+
+  if(changed){
+
+    saveQueue();
+
+    await refreshProducts();
+
+    say(
+      'Pending offline sales synced successfully.',
+      'ok'
+    );
+  }
+
+  updateQueueNote();
 }
-window.addEventListener('online',()=>{updateStatus();syncQueue()});window.addEventListener('offline',updateStatus);
-updateQueueNote();start();
+
+window.addEventListener('online',()=>{
+  updateStatus();
+  syncQueue();
+});
+
+window.addEventListener('offline',updateStatus);
+
+updateQueueNote();
+updateStatus();
+
+start();
 </script>
-</body></html>
+
+<!-- Register LAZIZ offline application -->
+<script>
+if('serviceWorker' in navigator){
+
+  window.addEventListener('load',()=>{
+
+    navigator.serviceWorker
+      .register('./offline-sw.js')
+      .then(()=>{
+        console.log('LAZIZ offline system registered');
+      })
+      .catch(error=>{
+        console.error(
+          'LAZIZ offline setup failed:',
+          error
+        );
+      });
+
+  });
+
+}
+</script>
+
+</body>
+</html>
