@@ -1,36 +1,196 @@
 /* LAZIZ cloud integration phase 1: Supabase Auth, workspace, catalogue and online checkout.
-   Remaining modules are intentionally not enabled for live use until their cloud APIs are implemented. */
+   Product creation, editing and stock adjustments use the secure owner-only
+   save_product_owner database function.
+*/
 (function(){
   const cfg=window.LAZIZ_SUPABASE_CONFIG;
   if(!cfg?.url || !cfg?.publishableKey || !window.supabase?.createClient){
     console.error('LAZIZ Supabase configuration or client library is missing.');
     return;
   }
-  const sb=window.supabase.createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'laziz-auth-v1'}});
+
+  const sb=window.supabase.createClient(cfg.url,cfg.publishableKey,{
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true,
+      storageKey:'laziz-auth-v1'
+    }
+  });
+
   window.lazizSupabase=sb;
-  let cloudUser=null, cloudBusinessId=null, cloudRole=null, busy=false;
-  const originalShow=window.show;
+  let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
+
   const uid=()=>crypto.randomUUID();
-  const fail=e=>{console.error(e);toast(e?.message||'Something went wrong. Please try again.');};
-  function authNotice(msg){return `<div class="notice">${esc(msg)}</div>`;}
-  window.authForm=function(mode){
-    $('#authbox').innerHTML=mode==='login'?`<h2>Welcome back</h2><p class="muted">Sign in to your LAZIZ business workspace.</p><form id="cloudlogin"><div class="field"><label>Email address</label><input name="email" type="email" required autocomplete="email"></div><div class="field"><label>Password</label><input name="password" type="password" required autocomplete="current-password"></div><button class="btn" ${busy?'disabled':''}>Sign in</button></form><div class="auth-switch">New to LAZIZ? <a onclick="authForm('register')">Create a business account</a></div>${authNotice('Your account is securely managed by Supabase. Use the email and password you registered with.')}`:
-    `<h2>Create your LAZIZ account</h2><p class="muted">Register your account first. Then verify your email and create your business workspace.</p><form id="cloudregister"><div class="field"><label>Your full name</label><input name="owner" required autocomplete="name"></div><div class="field"><label>Email address</label><input name="email" type="email" required autocomplete="email"></div><div class="field"><label>Password (at least 8 characters)</label><input name="password" type="password" minlength="8" required autocomplete="new-password"></div><button class="btn" ${busy?'disabled':''}>Create account</button></form><div class="auth-switch">Already registered? <a onclick="authForm('login')">Sign in</a></div>${authNotice('We will send a verification email. Your business data will be private to your business and its invited members.')}`;
-    $('#cloudlogin')?.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;try{const f=new FormData(e.target);const {error}=await sb.auth.signInWithPassword({email:String(f.get('email')).trim().toLowerCase(),password:f.get('password')});if(error)throw error;await bootWorkspace();}catch(err){fail(err)}finally{busy=false;}});
-    $('#cloudregister')?.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;try{const f=new FormData(e.target);const {data,error}=await sb.auth.signUp({email:String(f.get('email')).trim().toLowerCase(),password:f.get('password'),options:{data:{full_name:String(f.get('owner')).trim()},emailRedirectTo:location.origin==='null'?undefined:location.origin}});if(error)throw error;if(data.session){await bootWorkspace();}else{$('#authbox').innerHTML=`<h2>Check your email</h2><p>We sent a confirmation link to <b>${esc(f.get('email'))}</b>. Open that email, confirm your address, then return here and sign in.</p><button class="btn" onclick="authForm('login')">Go to sign in</button>`;}}catch(err){fail(err)}finally{busy=false;}});
+  const fail=e=>{
+    console.error(e);
+    toast(e?.message||'Something went wrong. Please try again.');
   };
-  window.showAuth=function(mode){show('auth');authForm(mode)};
+
+  function authNotice(msg){
+    return `<div class="notice">${esc(msg)}</div>`;
+  }
+
+  window.authForm=function(mode){
+    $('#authbox').innerHTML=mode==='login'
+      ? `<h2>Welcome back</h2>
+         <p class="muted">Sign in to your LAZIZ business workspace.</p>
+         <form id="cloudlogin">
+           <div class="field"><label>Email address</label><input name="email" type="email" required autocomplete="email"></div>
+           <div class="field"><label>Password</label><input name="password" type="password" required autocomplete="current-password"></div>
+           <button class="btn" ${busy?'disabled':''}>Sign in</button>
+         </form>
+         <div class="auth-switch">New to LAZIZ? <a onclick="authForm('register')">Create a business account</a></div>
+         ${authNotice('Your account is securely managed by Supabase. Use the email and password you registered with.')}`
+      : `<h2>Create your LAZIZ account</h2>
+         <p class="muted">Register your account first. Then verify your email and create your business workspace.</p>
+         <form id="cloudregister">
+           <div class="field"><label>Your full name</label><input name="owner" required autocomplete="name"></div>
+           <div class="field"><label>Email address</label><input name="email" type="email" required autocomplete="email"></div>
+           <div class="field"><label>Password (at least 8 characters)</label><input name="password" type="password" minlength="8" required autocomplete="new-password"></div>
+           <button class="btn" ${busy?'disabled':''}>Create account</button>
+         </form>
+         <div class="auth-switch">Already registered? <a onclick="authForm('login')">Sign in</a></div>
+         ${authNotice('We will send a verification email. Your business data will be private to your business and its invited members.')}`;
+
+    $('#cloudlogin')?.addEventListener('submit',async e=>{
+      e.preventDefault();
+      if(busy)return;
+      busy=true;
+      try{
+        const f=new FormData(e.target);
+        const {error}=await sb.auth.signInWithPassword({
+          email:String(f.get('email')).trim().toLowerCase(),
+          password:f.get('password')
+        });
+        if(error)throw error;
+        await bootWorkspace();
+      }catch(err){
+        fail(err);
+      }finally{
+        busy=false;
+      }
+    });
+
+    $('#cloudregister')?.addEventListener('submit',async e=>{
+      e.preventDefault();
+      if(busy)return;
+      busy=true;
+      try{
+        const f=new FormData(e.target);
+        const {data,error}=await sb.auth.signUp({
+          email:String(f.get('email')).trim().toLowerCase(),
+          password:f.get('password'),
+          options:{
+            data:{full_name:String(f.get('owner')).trim()},
+            emailRedirectTo:location.origin==='null'?undefined:location.origin
+          }
+        });
+        if(error)throw error;
+        if(data.session){
+          await bootWorkspace();
+        }else{
+          $('#authbox').innerHTML=`<h2>Check your email</h2>
+            <p>We sent a confirmation link to <b>${esc(f.get('email'))}</b>. Open that email, confirm your address, then return here and sign in.</p>
+            <button class="btn" onclick="authForm('login')">Go to sign in</button>`;
+        }
+      }catch(err){
+        fail(err);
+      }finally{
+        busy=false;
+      }
+    });
+  };
+
+  window.showAuth=function(mode){
+    show('auth');
+    authForm(mode);
+  };
+
   async function bootWorkspace(){
-    const {data:{session},error:se}=await sb.auth.getSession();if(se)throw se;if(!session?.user){show('landing');return;}
+    const {data:{session},error:se}=await sb.auth.getSession();
+    if(se)throw se;
+
+    if(!session?.user){
+      cloudUser=null;
+      cloudBusinessId=null;
+      cloudRole=null;
+      show('landing');
+      return;
+    }
+
     cloudUser=session.user;
-    const {data:membership,error}=await sb.from('business_members').select('business_id,role').eq('user_id',cloudUser.id).limit(1).maybeSingle();
+
+    const {data:membership,error}=await sb
+      .from('business_members')
+      .select('business_id,role')
+      .eq('user_id',cloudUser.id)
+      .limit(1)
+      .maybeSingle();
+
     if(error)throw error;
-    if(!membership){show('auth');$('#authbox').innerHTML=`<h2>Create your business workspace</h2><p class="muted">Your account is ready. Enter the real name and category of your business.</p><form id="workspaceform"><div class="field"><label>Business name</label><input name="business" required minlength="2" placeholder="e.g. Unity Building Mart"></div><div class="field"><label>Business category</label><select name="industry"><option>Building materials & hardware</option><option>Supermarket & general shop</option><option>Pharmacy</option><option>Fashion & boutique</option><option>Electronics</option><option>Wholesale & distribution</option><option>Restaurant & café</option><option>Hotel & hospitality</option><option>Other</option></select></div><button class="btn">Create my workspace</button></form>${authNotice('This creates a separate private workspace. You can invite staff after the member-management feature is connected.')}`;
-      $('#workspaceform').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;try{const f=new FormData(e.target);const {data,error}=await sb.rpc('create_business_workspace',{p_name:String(f.get('business')).trim(),p_industry:f.get('industry')});if(error)throw error;cloudBusinessId=data;await loadCloudData();}catch(err){fail(err)}finally{busy=false;}};return;}
-    cloudBusinessId=membership.business_id;cloudRole=membership.role;await loadCloudData();
+
+    if(!membership){
+      show('auth');
+      $('#authbox').innerHTML=`<h2>Create your business workspace</h2>
+        <p class="muted">Your account is ready. Enter the real name and category of your business.</p>
+        <form id="workspaceform">
+          <div class="field"><label>Business name</label><input name="business" required minlength="2" placeholder="e.g. Unity Building Mart"></div>
+          <div class="field"><label>Business category</label>
+            <select name="industry">
+              <option>Building materials & hardware</option>
+              <option>Supermarket & general shop</option>
+              <option>Pharmacy</option>
+              <option>Fashion & boutique</option>
+              <option>Electronics</option>
+              <option>Wholesale & distribution</option>
+              <option>Restaurant & café</option>
+              <option>Hotel & hospitality</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button class="btn">Create my workspace</button>
+        </form>
+        ${authNotice('This creates a separate private workspace. You can invite staff after the member-management feature is connected.')}`;
+
+      $('#workspaceform').onsubmit=async e=>{
+        e.preventDefault();
+        if(busy)return;
+        busy=true;
+        try{
+          const f=new FormData(e.target);
+          const {data,error}=await sb.rpc('create_business_workspace',{
+            p_name:String(f.get('business')).trim(),
+            p_industry:f.get('industry')
+          });
+          if(error)throw error;
+          cloudBusinessId=data;
+          cloudRole='owner';
+          await loadCloudData();
+        }catch(err){
+          fail(err);
+        }finally{
+          busy=false;
+        }
+      };
+      return;
+    }
+
+    cloudBusinessId=membership.business_id;
+    cloudRole=membership.role;
+    await loadCloudData();
   }
   async function loadCloudData(){
-    const [businessRes,productsRes,salesRes,movesRes,customersRes,suppliersRes,expensesRes,refundsRes]=await Promise.all([
+    const [
+      businessRes,
+      productsRes,
+      salesRes,
+      movesRes,
+      customersRes,
+      suppliersRes,
+      expensesRes,
+      refundsRes
+    ]=await Promise.all([
       sb.from('businesses').select('*').eq('id',cloudBusinessId).single(),
       sb.from('products').select('*').eq('business_id',cloudBusinessId).eq('active',true).order('name'),
       sb.from('sales').select('*').eq('business_id',cloudBusinessId).order('created_at',{ascending:false}),
@@ -40,84 +200,677 @@
       sb.from('expenses').select('*').eq('business_id',cloudBusinessId).order('created_at',{ascending:false}),
       sb.from('refunds').select('*').eq('business_id',cloudBusinessId).order('created_at',{ascending:false})
     ]);
-    for(const r of [businessRes,productsRes,salesRes,movesRes,customersRes,suppliersRes,expensesRes,refundsRes])if(r.error)throw r.error;
+
+    for(const r of [businessRes,productsRes,salesRes,movesRes,customersRes,suppliersRes,expensesRes,refundsRes]){
+      if(r.error)throw r.error;
+    }
+
     const b=businessRes.data;
-    const products=(productsRes.data||[]).map(p=>({id:p.id,name:p.name,sku:p.sku||'',category:p.category||'',unit:p.unit,cost:Number(p.cost),price:Number(p.price),qty:Number(p.quantity),reorder:Number(p.reorder_level),active:p.active}));
-    const saleIds=(salesRes.data||[]).map(s=>s.id);let itemRows=[];if(saleIds.length){const {data,error}=await sb.from('sale_items').select('*').in('sale_id',saleIds);if(error)throw error;itemRows=data||[];}
-    const sales=(salesRes.data||[]).map(s=>{const lines=itemRows.filter(i=>i.sale_id===s.id).map(i=>({saleItemId:i.id,productId:i.product_id,name:i.product_name,qty:Number(i.quantity),unit:i.unit,price:Number(i.unit_price),cost:Number(i.unit_cost)}));const cost=lines.reduce((a,l)=>a+l.qty*l.cost,0);return{id:s.id,receipt:s.receipt_no,date:s.created_at,customer:s.customer_name||'',payment:s.payment_method,lines,subtotal:Number(s.subtotal),discount:Number(s.discount),total:Number(s.total),profit:Number(s.total)-cost,status:s.status,refunded:s.status==='refunded',partiallyRefunded:s.status==='partially_refunded'};});
-    const refundHeaders=refundsRes.data||[];let refundItemRows=[];if(refundHeaders.length){const {data,error}=await sb.from('refund_items').select('*').in('refund_id',refundHeaders.map(r=>r.id));if(error)throw error;refundItemRows=data||[];}
-    const refunds=refundHeaders.map(r=>{const its=refundItemRows.filter(x=>x.refund_id===r.id);return{id:r.id,date:r.created_at,saleId:r.sale_id,receipt:(salesRes.data||[]).find(s=>s.id===r.sale_id)?.receipt_no||'',reason:r.reason,method:r.refund_method||'',amount:Number(r.amount),itemCount:its.length,quantity:its.reduce((a,x)=>a+Number(x.quantity),0)};});
-    const movements=(movesRes.data||[]).map(m=>({id:m.id,date:m.created_at,productId:m.product_id,productName:products.find(p=>p.id===m.product_id)?.name||'Product',type:m.movement_type,change:Number(m.quantity_change),balance:Number(m.quantity_after),unit:products.find(p=>p.id===m.product_id)?.unit||'',reference:m.reference||''}));
-    const customers=(customersRes.data||[]).map(x=>({id:x.id,name:x.name,phone:x.phone||'',email:x.email||'',notes:x.notes||''}));
-    const suppliers=(suppliersRes.data||[]).map(x=>({id:x.id,name:x.name,phone:x.phone||'',email:x.email||'',notes:x.notes||''}));
-    const expenses=(expensesRes.data||[]).map(x=>({id:x.id,date:x.created_at,description:x.description,category:x.category||'',amount:Number(x.amount),payment:x.payment_method||''}));
-    const user={id:cloudUser.id,email:cloudUser.email,owner:cloudUser.user_metadata?.full_name||cloudUser.email,businessId:cloudBusinessId,role:cloudRole||'owner'};
-    db={users:[user],businesses:{[cloudBusinessId]:{id:cloudBusinessId,name:b.name,industry:b.industry,currency:b.currency||'NGN',products,customers,suppliers,sales,refunds,expenses,stockMovements:movements,notifications:[]}}};current=user;localStorage.setItem('laziz_cloud_business',cloudBusinessId);show('app');openApp();
+    const products=(productsRes.data||[]).map(p=>({
+      id:p.id,
+      name:p.name,
+      sku:p.sku||'',
+      category:p.category||'',
+      unit:p.unit,
+      cost:Number(p.cost),
+      price:Number(p.price),
+      qty:Number(p.quantity),
+      reorder:Number(p.reorder_level),
+      active:p.active
+    }));
+
+    const saleIds=(salesRes.data||[]).map(s=>s.id);
+    let itemRows=[];
+    if(saleIds.length){
+      const {data,error}=await sb.from('sale_items').select('*').in('sale_id',saleIds);
+      if(error)throw error;
+      itemRows=data||[];
+    }
+
+    const sales=(salesRes.data||[]).map(s=>{
+      const lines=itemRows
+        .filter(i=>i.sale_id===s.id)
+        .map(i=>({
+          saleItemId:i.id,
+          productId:i.product_id,
+          name:i.product_name,
+          qty:Number(i.quantity),
+          unit:i.unit,
+          price:Number(i.unit_price),
+          cost:Number(i.unit_cost)
+        }));
+      const cost=lines.reduce((a,l)=>a+l.qty*l.cost,0);
+      return {
+        id:s.id,
+        receipt:s.receipt_no,
+        date:s.created_at,
+        customer:s.customer_name||'',
+        payment:s.payment_method,
+        lines,
+        subtotal:Number(s.subtotal),
+        discount:Number(s.discount),
+        total:Number(s.total),
+        profit:Number(s.total)-cost,
+        status:s.status,
+        refunded:s.status==='refunded',
+        partiallyRefunded:s.status==='partially_refunded'
+      };
+    });
+
+    const refundHeaders=refundsRes.data||[];
+    let refundItemRows=[];
+    if(refundHeaders.length){
+      const {data,error}=await sb
+        .from('refund_items')
+        .select('*')
+        .in('refund_id',refundHeaders.map(r=>r.id));
+      if(error)throw error;
+      refundItemRows=data||[];
+    }
+
+    const refunds=refundHeaders.map(r=>{
+      const its=refundItemRows.filter(x=>x.refund_id===r.id);
+      return {
+        id:r.id,
+        date:r.created_at,
+        saleId:r.sale_id,
+        receipt:(salesRes.data||[]).find(s=>s.id===r.sale_id)?.receipt_no||'',
+        reason:r.reason,
+        method:r.refund_method||'',
+        amount:Number(r.amount),
+        itemCount:its.length,
+        quantity:its.reduce((a,x)=>a+Number(x.quantity),0)
+      };
+    });
+
+    const movements=(movesRes.data||[]).map(m=>({
+      id:m.id,
+      date:m.created_at,
+      productId:m.product_id,
+      productName:products.find(p=>p.id===m.product_id)?.name||'Product',
+      type:m.movement_type,
+      change:Number(m.quantity_change),
+      balance:Number(m.quantity_after),
+      unit:products.find(p=>p.id===m.product_id)?.unit||'',
+      reference:m.reference||''
+    }));
+
+    const customers=(customersRes.data||[]).map(x=>({
+      id:x.id,name:x.name,phone:x.phone||'',email:x.email||'',notes:x.notes||''
+    }));
+    const suppliers=(suppliersRes.data||[]).map(x=>({
+      id:x.id,name:x.name,phone:x.phone||'',email:x.email||'',notes:x.notes||''
+    }));
+    const expenses=(expensesRes.data||[]).map(x=>({
+      id:x.id,date:x.created_at,description:x.description,category:x.category||'',
+      amount:Number(x.amount),payment:x.payment_method||''
+    }));
+
+    const user={
+      id:cloudUser.id,
+      email:cloudUser.email,
+      owner:cloudUser.user_metadata?.full_name||cloudUser.email,
+      businessId:cloudBusinessId,
+      role:cloudRole||'owner'
+    };
+
+    db={
+      users:[user],
+      businesses:{
+        [cloudBusinessId]:{
+          id:cloudBusinessId,
+          name:b.name,
+          industry:b.industry,
+          currency:b.currency||'NGN',
+          products,customers,suppliers,sales,refunds,expenses,
+          stockMovements:movements,
+          notifications:[]
+        }
+      }
+    };
+
+    current=user;
+    localStorage.setItem('laziz_cloud_business',cloudBusinessId);
+    show('app');
+    openApp();
   }
-  window.openApp=function(){show('app');$$('.navbtn[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));navigate('dashboard');refreshAlerts(false);};
-  window.logout=async function(){await sb.auth.signOut();cloudUser=null;cloudBusinessId=null;cloudRole=null;current=null;cart=[];show('landing');};
+
+  window.openApp=function(){
+    show('app');
+    $$('.navbtn[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));
+    navigate('dashboard');
+    refreshAlerts(false);
+  };
+
+  window.logout=async function(){
+    await sb.auth.signOut();
+    cloudUser=null;
+    cloudBusinessId=null;
+    cloudRole=null;
+    current=null;
+    cart=[];
+    show('landing');
+  };
+
   window.checkout=async function(){
-    if(!cart.length)return toast('Add at least one product');const b=biz(),subtotal=cart.reduce((a,l)=>a+b.products.find(p=>p.id===l.id).price*l.qty,0),discount=Number($('#posdiscount').value||0);if(!Number.isFinite(discount)||discount<0||discount>subtotal)return toast('Discount must be between ₦0 and the subtotal');
-    const transactionId=uid(),receiptNo='LZ-'+Date.now().toString().slice(-8);try{const {data,error}=await sb.rpc('create_sale_atomic',{p_business_id:cloudBusinessId,p_receipt_no:receiptNo,p_customer_name:$('#poscustomer').value,p_payment_method:$('#payment').value,p_discount:discount,p_client_transaction_id:transactionId,p_items:cart.map(l=>({product_id:l.id,quantity:l.qty})),p_source:'online'});if(error)throw error;const {data:sr,error:se}=await sb.from('sales').select('*').eq('id',data).single();if(se)throw se;const {data:ir,error:ie}=await sb.from('sale_items').select('*').eq('sale_id',data);if(ie)throw ie;const lines=(ir||[]).map(i=>({productId:i.product_id,name:i.product_name,qty:Number(i.quantity),unit:i.unit,price:Number(i.unit_price),cost:Number(i.unit_cost)}));const s={id:sr.id,receipt:sr.receipt_no,date:sr.created_at,customer:sr.customer_name||'',payment:sr.payment_method,lines,subtotal:Number(sr.subtotal),discount:Number(sr.discount),total:Number(sr.total),profit:Number(sr.total)-lines.reduce((a,l)=>a+l.qty*l.cost,0)};cart=[];await loadCloudData();receipt(s);toast('Sale saved securely to LAZIZ cloud');}catch(err){fail(err)}
+    if(!cart.length)return toast('Add at least one product');
+
+    const b=biz();
+    const subtotal=cart.reduce((a,l)=>a+b.products.find(p=>p.id===l.id).price*l.qty,0);
+    const discount=Number($('#posdiscount').value||0);
+
+    if(!Number.isFinite(discount)||discount<0||discount>subtotal){
+      return toast('Discount must be between ₦0 and the subtotal');
+    }
+
+    const transactionId=uid();
+    const receiptNo='LZ-'+Date.now().toString().slice(-8);
+
+    try{
+      const {data,error}=await sb.rpc('create_sale_atomic',{
+        p_business_id:cloudBusinessId,
+        p_receipt_no:receiptNo,
+        p_customer_name:$('#poscustomer').value,
+        p_payment_method:$('#payment').value,
+        p_discount:discount,
+        p_client_transaction_id:transactionId,
+        p_items:cart.map(l=>({product_id:l.id,quantity:l.qty})),
+        p_source:'online'
+      });
+      if(error)throw error;
+
+      const {data:sr,error:se}=await sb.from('sales').select('*').eq('id',data).single();
+      if(se)throw se;
+
+      const {data:ir,error:ie}=await sb.from('sale_items').select('*').eq('sale_id',data);
+      if(ie)throw ie;
+
+      const lines=(ir||[]).map(i=>({
+        productId:i.product_id,
+        name:i.product_name,
+        qty:Number(i.quantity),
+        unit:i.unit,
+        price:Number(i.unit_price),
+        cost:Number(i.unit_cost)
+      }));
+
+      const s={
+        id:sr.id,
+        receipt:sr.receipt_no,
+        date:sr.created_at,
+        customer:sr.customer_name||'',
+        payment:sr.payment_method,
+        lines,
+        subtotal:Number(sr.subtotal),
+        discount:Number(sr.discount),
+        total:Number(sr.total),
+        profit:Number(sr.total)-lines.reduce((a,l)=>a+l.qty*l.cost,0)
+      };
+
+      cart=[];
+      await loadCloudData();
+      receipt(s);
+      toast('Sale saved securely to LAZIZ cloud');
+    }catch(err){
+      fail(err);
+    }
   };
-  window.productModal=function(id){const p=biz().products.find(x=>x.id===id)||{name:'',sku:'',category:'',unit:'',cost:'',price:'',qty:'',reorder:''};modal(`<h2>${id?'Edit product':'Add a product'}</h2><form id="cloudproductform" class="form-grid"><div class="field"><label>Product name</label><input name="name" required value="${esc(p.name)}"></div><div class="field"><label>SKU / product code</label><input name="sku" value="${esc(p.sku)}"></div><div class="field"><label>Category</label><input name="category" required value="${esc(p.category)}"></div><div class="field"><label>Unit of measure</label><select name="unit" required><option value="" disabled ${!p.unit?'selected':''}>Choose unit</option>${['piece','bag','tonne','kg','metre','length','sheet','bundle','carton','box','bucket','litre','roll','pack','set','dozen','unit'].map(x=>`<option ${p.unit===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Purchase cost (₦)</label><input name="cost" type="number" min="0" step=".01" required value="${p.cost}"></div><div class="field"><label>Selling price (₦)</label><input name="price" type="number" min="0" step=".01" required value="${p.price}"></div><div class="field"><label>Quantity in stock</label><input name="qty" type="number" min="0" step=".001" required value="${p.qty}"></div><div class="field"><label>Low-stock alert at</label><input name="reorder" type="number" min="0" step=".001" required value="${p.reorder}"></div><div class="modal-actions wide"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save to cloud</button></div></form>`);
-    $('#cloudproductform').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),payload={business_id:cloudBusinessId,name:String(f.get('name')).trim(),sku:String(f.get('sku')).trim()||null,category:String(f.get('category')).trim(),unit:f.get('unit'),cost:Number(f.get('cost')),price:Number(f.get('price')),quantity:Number(f.get('qty')),reorder_level:Number(f.get('reorder')),active:true,updated_at:new Date().toISOString()};try{let old=Number(p.qty||0),res;if(id)res=await sb.from('products').update(payload).eq('id',id).eq('business_id',cloudBusinessId).select().single();else res=await sb.from('products').insert(payload).select().single();if(res.error)throw res.error;const diff=payload.quantity-old;if(diff!==0){const {error}=await sb.from('stock_movements').insert({business_id:cloudBusinessId,product_id:res.data.id,movement_type:id?'adjustment':'opening_stock',quantity_change:diff,quantity_after:payload.quantity,reference:'Product form',actor_id:cloudUser.id});if(error)throw error;}closeModal();await loadCloudData();navigate('products');toast('Product saved to cloud');}catch(err){fail(err)}};
+
+  /* Owner-only product form.
+     IMPORTANT: Never insert directly into stock_movements from the browser.
+     save_product_owner performs the product write and stock-ledger write atomically. */
+  window.productModal=function(id){
+    if(cloudRole!=='owner'){
+      return toast('Only the business owner can add or edit products.');
+    }
+
+    const p=biz().products.find(x=>x.id===id)||{
+      name:'',sku:'',category:'',unit:'',cost:'',price:'',qty:'',reorder:''
+    };
+
+    modal(`<h2>${id?'Edit product':'Add a product'}</h2>
+      <form id="cloudproductform" class="form-grid">
+        <div class="field"><label>Product name</label><input name="name" required value="${esc(p.name)}"></div>
+        <div class="field"><label>SKU / product code</label><input name="sku" value="${esc(p.sku)}"></div>
+        <div class="field"><label>Category</label><input name="category" required value="${esc(p.category)}"></div>
+        <div class="field">
+          <label>Unit of measure</label>
+          <select name="unit" required>
+            <option value="" disabled ${!p.unit?'selected':''}>Choose unit</option>
+            ${['piece','bag','tonne','kg','metre','length','sheet','bundle','carton','box','bucket','litre','roll','pack','set','dozen','unit'].map(x=>`<option ${p.unit===x?'selected':''}>${x}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Purchase cost (₦)</label><input name="cost" type="number" min="0" step=".01" required value="${p.cost}"></div>
+        <div class="field"><label>Selling price (₦)</label><input name="price" type="number" min="0" step=".01" required value="${p.price}"></div>
+        <div class="field"><label>Quantity in stock</label><input name="qty" type="number" min="0" step=".001" required value="${p.qty}"></div>
+        <div class="field"><label>Low-stock alert at</label><input name="reorder" type="number" min="0" step=".001" required value="${p.reorder}"></div>
+        <div class="modal-actions wide">
+          <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn">Save to cloud</button>
+        </div>
+      </form>`);
+
+    $('#cloudproductform').onsubmit=async e=>{
+      e.preventDefault();
+      if(busy)return;
+
+      const f=new FormData(e.target);
+      const quantity=Number(f.get('qty'));
+      const cost=Number(f.get('cost'));
+      const price=Number(f.get('price'));
+      const reorder=Number(f.get('reorder'));
+
+      if(!Number.isFinite(quantity)||quantity<0||
+         !Number.isFinite(cost)||cost<0||
+         !Number.isFinite(price)||price<0||
+         !Number.isFinite(reorder)||reorder<0){
+        return toast('Please enter valid product quantities and prices.');
+      }
+
+      busy=true;
+      const submit=e.target.querySelector('button:not([type="button"])');
+      if(submit){
+        submit.disabled=true;
+        submit.textContent='Saving...';
+      }
+
+      try{
+        const {error}=await sb.rpc('save_product_owner',{
+          p_business_id:cloudBusinessId,
+          p_product_id:id||null,
+          p_name:String(f.get('name')).trim(),
+          p_sku:String(f.get('sku')).trim()||null,
+          p_category:String(f.get('category')).trim(),
+          p_unit:f.get('unit'),
+          p_cost:cost,
+          p_price:price,
+          p_quantity:quantity,
+          p_reorder_level:reorder
+        });
+
+        if(error)throw error;
+
+        closeModal();
+        await loadCloudData();
+        navigate('products');
+        toast('Product and stock record saved securely');
+      }catch(err){
+        fail(err);
+        if(submit){
+          submit.disabled=false;
+          submit.textContent='Save to cloud';
+        }
+      }finally{
+        busy=false;
+      }
+    };
   };
-  window.deleteProduct=async function(id){if(!confirm('Deactivate this product? Its historical sale records will be kept.'))return;const {error}=await sb.from('products').update({active:false,updated_at:new Date().toISOString()}).eq('id',id).eq('business_id',cloudBusinessId);if(error)return fail(error);await loadCloudData();navigate('products');toast('Product deactivated');};
-  window.settings=function(){let b=biz();$('#main').innerHTML=head('Business settings','Manage your cloud workspace details.')+`<div class="panel" style="max-width:650px"><h3>Business profile</h3><form id="settingsform"><div class="field"><label>Business name</label><input name="name" value="${esc(b.name)}" required></div><div class="field"><label>Business category</label><input name="industry" value="${esc(b.industry)}" required></div><button class="btn">Save settings</button></form><div class="notice">Products, stock and online sales are stored in Supabase for this business. Customer/supplier/expense/refund cloud workflows and offline cashier sync are still being completed.</div></div>`;$('#settingsform').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const {error}=await sb.from('businesses').update({name:f.get('name'),industry:f.get('industry')}).eq('id',cloudBusinessId);if(error)return fail(error);await loadCloudData();navigate('settings');toast('Business profile updated')};};
+
+  window.deleteProduct=async function(id){
+    if(cloudRole!=='owner'){
+      return toast('Only the business owner can deactivate products.');
+    }
+    if(!confirm('Deactivate this product? Its historical sale records will be kept.'))return;
+
+    const {error}=await sb.from('products')
+      .update({active:false,updated_at:new Date().toISOString()})
+      .eq('id',id)
+      .eq('business_id',cloudBusinessId);
+
+    if(error)return fail(error);
+    await loadCloudData();
+    navigate('products');
+    toast('Product deactivated');
+  };
+     window.settings=function(){
+    let b=biz();
+    $('#main').innerHTML=head('Business settings','Manage your cloud workspace details.')
+      +`<div class="panel" style="max-width:650px">
+        <h3>Business profile</h3>
+        <form id="settingsform">
+          <div class="field"><label>Business name</label><input name="name" value="${esc(b.name)}" required></div>
+          <div class="field"><label>Business category</label><input name="industry" value="${esc(b.industry)}" required></div>
+          <button class="btn">Save settings</button>
+        </form>
+        <div class="notice">Products, stock and online sales are stored in Supabase for this business. Customer/supplier/expense/refund cloud workflows and offline cashier sync are still being completed.</div>
+      </div>`;
+
+    $('#settingsform').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.target);
+      const {error}=await sb.from('businesses')
+        .update({name:f.get('name'),industry:f.get('industry')})
+        .eq('id',cloudBusinessId);
+      if(error)return fail(error);
+      await loadCloudData();
+      navigate('settings');
+      toast('Business profile updated');
+    };
+  };
+
   // Cloud-backed customer and supplier records.
   window.personModal=function(type){
     if(!['customers','suppliers'].includes(type))return;
     const label=type==='customers'?'Customer':'Supplier';
-    modal(`<h2>Add ${label.toLowerCase()}</h2><form id="cloudpersonform"><div class="field"><label>${label} name</label><input name="name" required></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Address / notes</label><textarea name="notes" rows="3"></textarea></div><div class="modal-actions"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save to cloud</button></div></form>`);
-    $('#cloudpersonform').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const payload={business_id:cloudBusinessId,name:String(f.get('name')).trim(),phone:String(f.get('phone')).trim()||null,email:String(f.get('email')).trim()||null,notes:String(f.get('notes')).trim()||null};try{const {error}=await sb.from(type).insert(payload);if(error)throw error;closeModal();await loadCloudData();navigate(type);toast(label+' saved to cloud');}catch(err){fail(err)}};
+
+    modal(`<h2>Add ${label.toLowerCase()}</h2>
+      <form id="cloudpersonform">
+        <div class="field"><label>${label} name</label><input name="name" required></div>
+        <div class="field"><label>Phone</label><input name="phone"></div>
+        <div class="field"><label>Email</label><input name="email" type="email"></div>
+        <div class="field"><label>Address / notes</label><textarea name="notes" rows="3"></textarea></div>
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn">Save to cloud</button>
+        </div>
+      </form>`);
+
+    $('#cloudpersonform').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.target);
+      const payload={
+        business_id:cloudBusinessId,
+        name:String(f.get('name')).trim(),
+        phone:String(f.get('phone')).trim()||null,
+        email:String(f.get('email')).trim()||null,
+        notes:String(f.get('notes')).trim()||null
+      };
+      try{
+        const {error}=await sb.from(type).insert(payload);
+        if(error)throw error;
+        closeModal();
+        await loadCloudData();
+        navigate(type);
+        toast(label+' saved to cloud');
+      }catch(err){
+        fail(err);
+      }
+    };
   };
+
   window.deletePerson=async function(type,id){
     if(!['customers','suppliers'].includes(type))return;
     if(!confirm('Delete this '+(type==='customers'?'customer':'supplier')+' record?'))return;
-    try{const {error}=await sb.from(type).delete().eq('id',id).eq('business_id',cloudBusinessId);if(error)throw error;await loadCloudData();navigate(type);toast('Record deleted');}catch(err){fail(err)}
+    try{
+      const {error}=await sb.from(type).delete().eq('id',id).eq('business_id',cloudBusinessId);
+      if(error)throw error;
+      await loadCloudData();
+      navigate(type);
+      toast('Record deleted');
+    }catch(err){
+      fail(err);
+    }
   };
+
   // Cloud-backed expense recording. Supabase RLS limits this to owners/managers.
   window.expenseModal=function(){
-    modal(`<h2>Record expense</h2><form id="cloudexpenseform"><div class="field"><label>Description</label><input name="description" required></div><div class="field"><label>Category</label><select name="category"><option>Rent</option><option>Transport</option><option>Utilities</option><option>Salaries</option><option>Repairs</option><option>Purchases</option><option>Other</option></select></div><div class="field"><label>Amount (₦)</label><input name="amount" type="number" min="0.01" step=".01" required></div><div class="field"><label>Payment method</label><select name="payment"><option>Cash</option><option>Bank transfer</option><option>POS / Card</option></select></div><div class="modal-actions"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save to cloud</button></div></form>`);
-    $('#cloudexpenseform').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),amount=Number(f.get('amount'));if(!Number.isFinite(amount)||amount<=0)return toast('Enter an amount greater than zero');const payload={business_id:cloudBusinessId,description:String(f.get('description')).trim(),category:f.get('category'),amount,payment_method:f.get('payment'),actor_id:cloudUser.id};try{const {error}=await sb.from('expenses').insert(payload);if(error)throw error;closeModal();await loadCloudData();navigate('expenses');toast('Expense saved to cloud');}catch(err){fail(err)}};
+    modal(`<h2>Record expense</h2>
+      <form id="cloudexpenseform">
+        <div class="field"><label>Description</label><input name="description" required></div>
+        <div class="field"><label>Category</label><select name="category">
+          <option>Rent</option><option>Transport</option><option>Utilities</option>
+          <option>Salaries</option><option>Repairs</option><option>Purchases</option><option>Other</option>
+        </select></div>
+        <div class="field"><label>Amount (₦)</label><input name="amount" type="number" min="0.01" step=".01" required></div>
+        <div class="field"><label>Payment method</label><select name="payment">
+          <option>Cash</option><option>Bank transfer</option><option>POS / Card</option>
+        </select></div>
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn">Save to cloud</button>
+        </div>
+      </form>`);
+
+    $('#cloudexpenseform').onsubmit=async e=>{
+      e.preventDefault();
+      const f=new FormData(e.target);
+      const amount=Number(f.get('amount'));
+      if(!Number.isFinite(amount)||amount<=0)return toast('Enter an amount greater than zero');
+
+      const payload={
+        business_id:cloudBusinessId,
+        description:String(f.get('description')).trim(),
+        category:f.get('category'),
+        amount,
+        payment_method:f.get('payment'),
+        actor_id:cloudUser.id
+      };
+
+      try{
+        const {error}=await sb.from('expenses').insert(payload);
+        if(error)throw error;
+        closeModal();
+        await loadCloudData();
+        navigate('expenses');
+        toast('Expense saved to cloud');
+      }catch(err){
+        fail(err);
+      }
+    };
   };
+
   // Atomic cloud-backed customer returns and refunds.
   window.refundSale=async function(saleId){
     try{
       const sale=biz().sales.find(x=>x.id===saleId);
       if(!sale)return toast('Sale record could not be found. Refresh and try again.');
-      if(sale.status==='refunded'||sale.status==='voided')return toast('This sale cannot receive another return.');
+      if(sale.status==='refunded'||sale.status==='voided'){
+        return toast('This sale cannot receive another return.');
+      }
+
       const [itemsRes,refundsRes]=await Promise.all([
         sb.from('sale_items').select('*').eq('sale_id',saleId).eq('business_id',cloudBusinessId),
         sb.from('refunds').select('*').eq('sale_id',saleId).eq('business_id',cloudBusinessId)
       ]);
-      if(itemsRes.error)throw itemsRes.error;if(refundsRes.error)throw refundsRes.error;
-      const originalItems=itemsRes.data||[],refunds=refundsRes.data||[];
+
+      if(itemsRes.error)throw itemsRes.error;
+      if(refundsRes.error)throw refundsRes.error;
+
+      const originalItems=itemsRes.data||[];
+      const refunds=refundsRes.data||[];
       if(!originalItems.length)return toast('No sale items were found for this receipt.');
+
       let priorRows=[];
-      if(refunds.length){const {data,error}=await sb.from('refund_items').select('*').in('refund_id',refunds.map(r=>r.id));if(error)throw error;priorRows=data||[];}
-      const returned={};const refundedAmounts={};
-      priorRows.forEach(x=>{returned[x.sale_item_id]=(returned[x.sale_item_id]||0)+Number(x.quantity);refundedAmounts[x.sale_item_id]=(refundedAmounts[x.sale_item_id]||0)+Number(x.amount);});
-      const available=originalItems.map(i=>({...i,remaining:Math.max(0,Number(i.quantity)-(returned[i.id]||0))})).filter(i=>i.remaining>0);
+      if(refunds.length){
+        const {data,error}=await sb.from('refund_items').select('*').in('refund_id',refunds.map(r=>r.id));
+        if(error)throw error;
+        priorRows=data||[];
+      }
+
+      const returned={};
+      const refundedAmounts={};
+      priorRows.forEach(x=>{
+        returned[x.sale_item_id]=(returned[x.sale_item_id]||0)+Number(x.quantity);
+        refundedAmounts[x.sale_item_id]=(refundedAmounts[x.sale_item_id]||0)+Number(x.amount);
+      });
+
+      const available=originalItems
+        .map(i=>({...i,remaining:Math.max(0,Number(i.quantity)-(returned[i.id]||0))}))
+        .filter(i=>i.remaining>0);
+
       if(!available.length)return toast('All products on this receipt have already been returned.');
-      const rows=available.map((i,n)=>`<div class="field" style="border:1px solid #e5ebe6;border-radius:10px;padding:12px;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>${esc(i.product_name)}</strong><span class="muted">Bought: ${Number(i.quantity)} ${esc(i.unit||'')} · Returned: ${returned[i.id]||0}</span></div><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px"><label for="refundqty${n}">Return quantity (max ${i.remaining})</label><input id="refundqty${n}" data-sale-item="${i.id}" type="number" min="0" max="${i.remaining}" step="0.001" value="0" style="max-width:125px"></div><small class="muted">Original unit price: ${money(Number(i.unit_price))}</small></div>`).join('');
-      modal(`<h2>Return / refund receipt ${esc(sale.receipt)}</h2><p class="muted">Select the quantities being returned. Stock will be restored only after the refund is saved successfully.</p><form id="cloudrefundform"><div style="max-height:42vh;overflow:auto">${rows}</div><div class="field"><label>Reason for return</label><textarea name="reason" rows="2" required maxlength="500" placeholder="e.g. Customer does not like the product"></textarea></div><div class="field"><label>Refund payment method</label><select name="method" required><option value="cash">Cash</option><option value="bank transfer">Bank Transfer</option><option value="pos">POS</option></select></div><div id="refundpreview" class="notice">Select at least one quantity to calculate the refund.</div><div class="modal-actions"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button id="submitrefund" class="btn">Confirm return & refund</button></div></form>`);
-      const form=$('#cloudrefundform'),inputs=[...form.querySelectorAll('[data-sale-item]')],preview=$('#refundpreview'),submit=$('#submitrefund');
-      const selectedItems=()=>inputs.map(input=>({saleItemId:input.dataset.saleItem,qty:Number(input.value||0),max:Number(input.max)})).filter(x=>x.qty>0);
-      const calc=()=>{let total=0;for(const x of selectedItems()){const item=originalItems.find(i=>i.id===x.saleItemId);if(!item)continue;const qty=Number(item.quantity),subtotal=Number(sale.subtotal)||0,discount=Number(sale.discount)||0,factor=subtotal>0?Math.max(0,1-discount/subtotal):1;const lineTotal=Math.round(Number(item.unit_price)*qty*factor*100)/100;const before=returned[item.id]||0,prior=refundedAmounts[item.id]||0;total+=Math.round(lineTotal*((before+x.qty)/qty)*100)/100-prior;}return Math.max(0,Math.round(total*100)/100);};
-      inputs.forEach(input=>input.addEventListener('input',()=>{const v=Number(input.value||0);if(v<0)input.value='0';if(v>Number(input.max))input.value=input.max;const chosen=selectedItems();preview.textContent=chosen.length?`Estimated refund: ${money(calc())}`:'Select at least one quantity to calculate the refund.';}));
-      form.onsubmit=async e=>{e.preventDefault();if(busy)return;const chosen=selectedItems();if(!chosen.length)return toast('Enter a return quantity for at least one product.');if(chosen.some(x=>!Number.isFinite(x.qty)||x.qty<=0||x.qty>x.max))return toast('Check the return quantities and try again.');const f=new FormData(form),reason=String(f.get('reason')||'').trim();if(!reason)return toast('Enter the reason for the return.');busy=true;submit.disabled=true;submit.textContent='Processing…';try{const {data,error}=await sb.rpc('process_sale_refund',{p_business_id:cloudBusinessId,p_sale_id:saleId,p_reason:reason,p_refund_method:f.get('method'),p_client_transaction_id:uid(),p_items:chosen.map(x=>({sale_item_id:x.saleItemId,quantity:x.qty}))});if(error)throw error;closeModal();await loadCloudData();navigate('sales');toast('Return saved. Refund: '+money(calc()));}catch(err){fail(err);submit.disabled=false;submit.textContent='Confirm return & refund';}finally{busy=false;}};
-    }catch(err){fail(err)}
+
+      const rows=available.map((i,n)=>`
+        <div class="field" style="border:1px solid #e5ebe6;border-radius:10px;padding:12px;margin:10px 0">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <strong>${esc(i.product_name)}</strong>
+            <span class="muted">Bought: ${Number(i.quantity)} ${esc(i.unit||'')} · Returned: ${returned[i.id]||0}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px">
+            <label for="refundqty${n}">Return quantity (max ${i.remaining})</label>
+            <input id="refundqty${n}" data-sale-item="${i.id}" type="number" min="0" max="${i.remaining}" step="0.001" value="0" style="max-width:125px">
+          </div>
+          <small class="muted">Original unit price: ${money(Number(i.unit_price))}</small>
+        </div>`).join('');
+
+      modal(`<h2>Return / refund receipt ${esc(sale.receipt)}</h2>
+        <p class="muted">Select the quantities being returned. Stock will be restored only after the refund is saved successfully.</p>
+        <form id="cloudrefundform">
+          <div style="max-height:42vh;overflow:auto">${rows}</div>
+          <div class="field"><label>Reason for return</label><textarea name="reason" rows="2" required maxlength="500" placeholder="e.g. Customer does not like the product"></textarea></div>
+          <div class="field"><label>Refund payment method</label><select name="method" required>
+            <option value="cash">Cash</option><option value="bank transfer">Bank Transfer</option><option value="pos">POS</option>
+          </select></div>
+          <div id="refundpreview" class="notice">Select at least one quantity to calculate the refund.</div>
+          <div class="modal-actions">
+            <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+            <button id="submitrefund" class="btn">Confirm return & refund</button>
+          </div>
+        </form>`);
+
+      const form=$('#cloudrefundform');
+      const inputs=[...form.querySelectorAll('[data-sale-item]')];
+      const preview=$('#refundpreview');
+      const submit=$('#submitrefund');
+
+      const selectedItems=()=>inputs
+        .map(input=>({
+          saleItemId:input.dataset.saleItem,
+          qty:Number(input.value||0),
+          max:Number(input.max)
+        }))
+        .filter(x=>x.qty>0);
+
+      const calc=()=>{
+        let total=0;
+        for(const x of selectedItems()){
+          const item=originalItems.find(i=>i.id===x.saleItemId);
+          if(!item)continue;
+          const qty=Number(item.quantity);
+          const subtotal=Number(sale.subtotal)||0;
+          const discount=Number(sale.discount)||0;
+          const factor=subtotal>0?Math.max(0,1-discount/subtotal):1;
+          const lineTotal=Math.round(Number(item.unit_price)*qty*factor*100)/100;
+          const before=returned[item.id]||0;
+          const prior=refundedAmounts[item.id]||0;
+          total+=Math.round(lineTotal*((before+x.qty)/qty)*100)/100-prior;
+        }
+        return Math.max(0,Math.round(total*100)/100);
+      };
+
+      inputs.forEach(input=>{
+        input.addEventListener('input',()=>{
+          const v=Number(input.value||0);
+          if(v<0)input.value='0';
+          if(v>Number(input.max))input.value=input.max;
+          const chosen=selectedItems();
+          preview.textContent=chosen.length
+            ?`Estimated refund: ${money(calc())}`
+            :'Select at least one quantity to calculate the refund.';
+        });
+      });
+
+      form.onsubmit=async e=>{
+        e.preventDefault();
+        if(busy)return;
+
+        const chosen=selectedItems();
+        if(!chosen.length)return toast('Enter a return quantity for at least one product.');
+        if(chosen.some(x=>!Number.isFinite(x.qty)||x.qty<=0||x.qty>x.max)){
+          return toast('Check the return quantities and try again.');
+        }
+
+        const f=new FormData(form);
+        const reason=String(f.get('reason')||'').trim();
+        if(!reason)return toast('Enter the reason for the return.');
+
+        busy=true;
+        submit.disabled=true;
+        submit.textContent='Processing…';
+
+        try{
+          const {data,error}=await sb.rpc('process_sale_refund',{
+            p_business_id:cloudBusinessId,
+            p_sale_id:saleId,
+            p_reason:reason,
+            p_refund_method:f.get('method'),
+            p_client_transaction_id:uid(),
+            p_items:chosen.map(x=>({sale_item_id:x.saleItemId,quantity:x.qty}))
+          });
+          if(error)throw error;
+
+          const refundAmount=calc();
+          closeModal();
+          await loadCloudData();
+          navigate('sales');
+          toast('Return saved. Refund: '+money(refundAmount));
+        }catch(err){
+          fail(err);
+          submit.disabled=false;
+          submit.textContent='Confirm return & refund';
+        }finally{
+          busy=false;
+        }
+      };
+    }catch(err){
+      fail(err);
+    }
   };
+
   // Sales screen includes return status, refund history and a return action for remaining quantities.
   window.sales=function(){
-    const b=biz(),items=b.sales.slice().reverse();
-    const rows=items.length?`<div class="table-wrap"><table><thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>${items.map(s=>{const label=s.status==='refunded'?'Refunded':s.status==='partially_refunded'?'Partially refunded':'Completed';const cls=s.status==='refunded'?'red':s.status==='partially_refunded'?'':'green';const action=s.status==='refunded'||s.status==='voided'?'—':`<button class="btn secondary small" onclick="refundSale('${s.id}')">Return / refund</button>`;return `<tr><td><strong>${esc(s.receipt)}</strong></td><td>${new Date(s.date).toLocaleString()}</td><td>${esc(s.customer||'Walk-in')}</td><td>${esc(s.payment||'')}</td><td><strong>${money(s.total)}</strong></td><td><span class="pill ${cls}">${label}</span></td><td>${action}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No sales recorded yet. Start with a new sale.</div>';
+    const b=biz();
+    const items=b.sales.slice().reverse();
+
+    const rows=items.length
+      ?`<div class="table-wrap"><table>
+          <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>${items.map(s=>{
+            const label=s.status==='refunded'?'Refunded':s.status==='partially_refunded'?'Partially refunded':'Completed';
+            const cls=s.status==='refunded'?'red':s.status==='partially_refunded'?'':'green';
+            const action=s.status==='refunded'||s.status==='voided'
+              ?'—'
+              :`<button class="btn secondary small" onclick="refundSale('${s.id}')">Return / refund</button>`;
+            return `<tr>
+              <td><strong>${esc(s.receipt)}</strong></td>
+              <td>${new Date(s.date).toLocaleString()}</td>
+              <td>${esc(s.customer||'Walk-in')}</td>
+              <td>${esc(s.payment||'')}</td>
+              <td><strong>${money(s.total)}</strong></td>
+              <td><span class="pill ${cls}">${label}</span></td>
+              <td>${action}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>`
+      :'<div class="empty">No sales recorded yet. Start with a new sale.</div>';
+
     const refundRows=(b.refunds||[]).slice().reverse();
-    const history=refundRows.length?`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Receipt</th><th>Reason</th><th>Method</th><th>Amount</th><th>Items / qty</th></tr></thead><tbody>${refundRows.map(r=>`<tr><td>${new Date(r.date).toLocaleString()}</td><td>${esc(r.receipt||'')}</td><td>${esc(r.reason||'')}</td><td>${esc(r.method||'')}</td><td><strong>${money(r.amount)}</strong></td><td>${Number(r.itemCount||0)} line(s) / ${Number(r.quantity||0)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No refunds have been recorded.</div>';
-    $('#main').innerHTML=head('Sales history','Review completed transactions, returns and refunds.')+`<div class="cards">${stat('All transactions',b.sales.length,'Recorded sales')}${stat('Total sales',money(b.sales.reduce((a,s)=>a+s.total,0)),'Before refunds')}${stat('Total refunded',money(refundRows.reduce((a,r)=>a+r.amount,0)),'Recorded returns')}${stat('Refund count',refundRows.length,'Saved refunds')}</div><div class="panel"><h3>Transactions</h3>${rows}</div><div class="panel"><h3>Returns & refunds</h3>${history}</div>`;
+    const history=refundRows.length
+      ?`<div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Receipt</th><th>Reason</th><th>Method</th><th>Amount</th><th>Items / qty</th></tr></thead>
+          <tbody>${refundRows.map(r=>`<tr>
+            <td>${new Date(r.date).toLocaleString()}</td>
+            <td>${esc(r.receipt||'')}</td>
+            <td>${esc(r.reason||'')}</td>
+            <td>${esc(r.method||'')}</td>
+            <td><strong>${money(r.amount)}</strong></td>
+            <td>${Number(r.itemCount||0)} line(s) / ${Number(r.quantity||0)}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>`
+      :'<div class="empty">No refunds have been recorded.</div>';
+
+    $('#main').innerHTML=head('Sales history','Review completed transactions, returns and refunds.')
+      +`<div class="cards">
+        ${stat('All transactions',b.sales.length,'Recorded sales')}
+        ${stat('Total sales',money(b.sales.reduce((a,s)=>a+s.total,0)),'Before refunds')}
+        ${stat('Total refunded',money(refundRows.reduce((a,r)=>a+r.amount,0)),'Recorded returns')}
+        ${stat('Refund count',refundRows.length,'Saved refunds')}
+      </div>
+      <div class="panel"><h3>Transactions</h3>${rows}</div>
+      <div class="panel"><h3>Returns & refunds</h3>${history}</div>`;
   };
-  sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){show('landing')} });
-  bootWorkspace().catch(err=>{fail(err);show('landing')});
+
+  sb.auth.onAuthStateChange((event,session)=>{
+    if(event==='SIGNED_OUT'){
+      cloudUser=null;
+      cloudBusinessId=null;
+      cloudRole=null;
+      show('landing');
+    }
+  });
+
+  bootWorkspace().catch(err=>{
+    fail(err);
+    show('landing');
+  });
 })();
