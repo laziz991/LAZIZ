@@ -1,19 +1,37 @@
-const CACHE_NAME = "laziz-offline-v2";
+
+const CACHE_NAME = "laziz-offline-v3";
+
+const SUPABASE_CDN =
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 
 const APP_FILES = [
   "./offline-pos.html",
   "./offline-manifest.json",
   "./offline-icon.svg",
-  "./supabase-config.js",
-  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  "./supabase-config.js"
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_FILES))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+
+    // Cache the app's local files.
+    await cache.addAll(APP_FILES);
+
+    // Cache the Supabase library separately.
+    const response = await fetch(SUPABASE_CDN, {
+      mode: "cors",
+      cache: "reload"
+    });
+
+    if (!response.ok || response.type === "opaque") {
+      throw new Error("Could not cache the Supabase library.");
+    }
+
+    await cache.put(SUPABASE_CDN, response);
+
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", event => {
@@ -37,30 +55,59 @@ self.addEventListener("fetch", event => {
 
   if (request.method !== "GET") return;
 
-  const isAppFile = url.origin === self.location.origin;
-  const isSupabaseLibrary =
-    url.hostname === "cdn.jsdelivr.net" &&
-    url.pathname.includes("/@supabase/supabase-js/");
+  // Supabase library.
+  if (url.href === SUPABASE_CDN) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(SUPABASE_CDN);
 
-  if (!isAppFile && !isSupabaseLibrary) return;
-
-  event.respondWith(
-    caches.match(request).then(cached => {
       if (cached) return cached;
 
-      return fetch(request).then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => cache.put(request, copy));
+      try {
+        const response = await fetch(request);
+
+        if (response.ok && response.type !== "opaque") {
+          await cache.put(SUPABASE_CDN, response.clone());
         }
+
         return response;
-      }).catch(() => {
-        if (request.mode === "navigate") {
-          return caches.match("./offline-pos.html");
-        }
-        return new Response("", { status: 503 });
-      });
-    })
-  );
+      } catch (error) {
+        return new Response(
+          "Supabase library is not available offline.",
+          { status: 503 }
+        );
+      }
+    })());
+
+    return;
+  }
+
+  // LAZIZ app files.
+  if (url.origin !== self.location.origin) return;
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+
+    if (cached) return cached;
+
+    try {
+      const response = await fetch(request);
+
+      if (response.ok && response.type === "basic") {
+        await cache.put(request, response.clone());
+      }
+
+      return response;
+    } catch (error) {
+      if (request.mode === "navigate") {
+        return await cache.match("./offline-pos.html") ||
+          new Response("LAZIZ app is not cached yet.", {
+            status: 503
+          });
+      }
+
+      return new Response("", { status: 503 });
+    }
+  })());
 });
