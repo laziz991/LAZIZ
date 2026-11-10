@@ -6,13 +6,11 @@
 <meta name="theme-color" content="#10251e">
 <link rel="manifest" href="./offline-manifest.json">
 <title>LAZIZ Offline Sales Counter</title>
-
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
 .head{background:#10251e;color:#fff;padding:17px 4vw;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.logo{font-size:21px;font-weight:900;letter-spacing:2px}
-.logo span{color:#e5bd69}
+.logo{font-size:21px;font-weight:900;letter-spacing:2px}.logo span{color:#e5bd69}
 .status{font-size:12px;color:#cfe4d5}
 .wrap{max-width:1200px;margin:24px auto;padding:0 18px}
 .intro{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
@@ -22,8 +20,7 @@ body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
 .panel{background:white;border:1px solid #e1e9e3;border-radius:14px;padding:18px;box-shadow:0 8px 25px #142b1b0a}
 .search{width:100%;padding:15px;border:1px solid #dbe5de;border-radius:10px;font-size:17px;outline:none}
 .search:focus{border-color:#559b70;box-shadow:0 0 0 3px #e7f4eb}
-.suggest{position:relative}
-.suggestions{position:absolute;top:5px;left:0;right:0;background:white;z-index:3;border:1px solid #dbe5de;border-radius:10px;box-shadow:0 10px 25px #0002;max-height:270px;overflow:auto}
+.suggest{position:relative}.suggestions{position:absolute;top:5px;left:0;right:0;background:white;z-index:3;border:1px solid #dbe5de;border-radius:10px;box-shadow:0 10px 25px #0002;max-height:270px;overflow:auto}
 .suggestion{display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid #edf1ee;cursor:pointer}
 .suggestion:hover{background:#f1f7f2}
 .line{display:grid;grid-template-columns:1.5fr .7fr .9fr .9fr 36px;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1ee}
@@ -34,41 +31,28 @@ body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
 .total{font-size:30px;font-weight:900}
 .btn{border:0;border-radius:9px;padding:13px 16px;background:#176b4b;color:white;font-weight:800;cursor:pointer}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.secondary{background:#edf3ef;color:#244236}
-.btn.paid{width:100%;font-size:17px;padding:17px}
+.btn.secondary{background:#edf3ef;color:#244236}.btn.paid{width:100%;font-size:17px;padding:17px}
 .btn.small{padding:9px 12px;font-size:12px}
-.field{margin:13px 0}
-.field label{display:block;font-size:11px;font-weight:800;color:#68776e;margin-bottom:6px}
+.field{margin:13px 0}.field label{display:block;font-size:11px;font-weight:800;color:#68776e;margin-bottom:6px}
 .field input,.field select{width:100%;padding:11px;border:1px solid #dce5df;border-radius:9px}
 .receipt{background:#f0f7f1;border:1px solid #dcebdd;padding:12px;border-radius:9px;font-size:12px;line-height:1.6}
 .empty{padding:35px;text-align:center;color:#829087}
 .notice{background:#fff6e5;color:#79581d;padding:12px;border-radius:9px;font-size:12px;line-height:1.6;margin-top:12px}
-.error{background:#fff0f0;color:#9b3030}
-.ok{background:#edf8ef;color:#245c36}
+.error{background:#fff0f0;color:#9b3030}.ok{background:#edf8ef;color:#245c36}
 .login-wrap{max-width:430px;margin:55px auto;padding:0 18px}
 .login-card{background:white;border:1px solid #e1e9e3;border-radius:14px;padding:25px;box-shadow:0 8px 25px #142b1b0a}
-.login-card h2{margin-top:0}
-.login-card input{width:100%;padding:14px;border:1px solid #dce5df;border-radius:9px;font-size:16px}
+.login-card h2{margin-top:0}.login-card input{width:100%;padding:14px;border:1px solid #dce5df;border-radius:9px;font-size:16px}
 .login-card label{display:block;margin:15px 0 6px;font-weight:700}
 .login-card .btn{width:100%;margin-top:15px}
 .hidden{display:none!important}
 @media(max-width:850px){.layout{grid-template-columns:1fr}.line{grid-template-columns:1.2fr .6fr .8fr .8fr 32px}.wrap{margin:15px auto}.intro{align-items:flex-start;flex-direction:column}}
 @media(max-width:500px){.line{grid-template-columns:1fr .55fr .75fr 32px}.line .line-total,.line-head .line-total{display:none}.total{font-size:25px}}
-@media print{
-  body *{visibility:hidden!important}
-  #print-area,#print-area *{visibility:visible!important}
-  #print-area{display:block!important;position:absolute;left:0;top:0;width:100%;padding:15px;color:#000;background:#fff}
-}
+@media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{display:block!important;position:absolute;left:0;top:0;width:100%;padding:15px;color:#000;background:#fff}}
 </style>
 </head>
-
 <body>
-
 <header class="head">
-  <div class="logo">
-    LAZIZ<span>.</span>
-    <small style="font-size:11px;letter-spacing:0;color:#d4e0d8">SALES COUNTER</small>
-  </div>
+  <div class="logo">LAZIZ<span>.</span> <small style="font-size:11px;letter-spacing:0;color:#d4e0d8">SALES COUNTER</small></div>
   <div class="status" id="connection">Starting offline app…</div>
 </header>
 
@@ -76,380 +60,295 @@ body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
   <div class="login-card">
     <h2>LAZIZ Staff Login</h2>
     <p class="muted">Enter your shared staff password to open the sales counter.</p>
-
     <label for="staff-password">Staff password</label>
-    <input id="staff-password" type="password"
-      autocomplete="current-password" placeholder="Enter staff password">
-
-    <button id="staff-login-button" class="btn" onclick="staffLogin()">
-      SIGN IN
-    </button>
-
+    <input id="staff-password" type="password" autocomplete="current-password" placeholder="Enter staff password">
+    <button id="staff-login-button" class="btn" onclick="staffLogin()">SIGN IN</button>
     <div id="login-feedback" style="margin-top:12px"></div>
+    <button class="btn secondary" style="width:100%;margin-top:12px" onclick="showOwnerSetup()">OWNER: SET / CHANGE STAFF PASSWORD</button>
+    <p class="muted" style="font-size:11px;margin-top:18px">First-time setup and initial product setup require internet. After successful staff login, this device can unlock offline.</p>
+  </div>
+</section>
 
-    <p class="muted" style="font-size:11px;margin-top:18px">
-      First-time login and initial product setup require internet.
-      After successful setup, this device can unlock offline.
-    </p>
+<section id="owner-setup" class="login-wrap hidden">
+  <div class="login-card">
+    <h2>Owner staff-password setup</h2>
+    <p class="muted">Sign in with the existing business owner account. This sets a separate shared password for salesgirls; it does not change the owner's main account password.</p>
+    <label for="owner-email">Owner email</label>
+    <input id="owner-email" type="email" autocomplete="username" placeholder="Owner account email">
+    <label for="owner-password">Existing owner password</label>
+    <input id="owner-password" type="password" autocomplete="current-password" placeholder="Owner account password">
+    <label for="new-staff-password">New shared staff password</label>
+    <input id="new-staff-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="At least 8 characters">
+    <label for="confirm-staff-password">Confirm staff password</label>
+    <input id="confirm-staff-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Enter it again">
+    <button id="owner-setup-button" class="btn" onclick="ownerSetup()">SAVE STAFF PASSWORD</button>
+    <button class="btn secondary" style="width:100%;margin-top:10px" onclick="backToStaffLogin()">BACK TO STAFF LOGIN</button>
+    <div id="owner-feedback" style="margin-top:12px"></div>
+    <p class="muted" style="font-size:11px;margin-top:15px">Internet connection is required. The owner account is used only to authorize this setup and is signed out of this offline counter afterward.</p>
   </div>
 </section>
 
 <main class="wrap hidden" id="sales-app">
-
 <div class="intro">
-  <div>
-    <h1>New customer sale</h1>
-    <div class="muted" id="business">Preparing your LAZIZ business…</div>
-  </div>
+  <div><h1>New customer sale</h1><div class="muted" id="business">Preparing your LAZIZ business…</div></div>
   <button class="btn secondary small" onclick="lockCounter()">Lock counter</button>
 </div>
-
 <div class="layout">
 <section class="panel">
-
   <div class="suggest">
-    <input id="search" class="search" autocomplete="off"
-      placeholder="Type product name or SKU…" disabled>
+    <input id="search" class="search" autocomplete="off" placeholder="Type product name or SKU…" disabled>
     <div id="suggestions" class="suggestions" hidden></div>
   </div>
-
-  <div style="margin:18px 0 5px" class="line line-head">
-    <span>Item</span><span>Qty</span><span>Unit price</span>
-    <span class="line-total">Line total</span><span></span>
-  </div>
-
-  <div id="lines">
-    <div class="empty">Loading your products…</div>
-  </div>
-
-  <div class="notice" id="empty-note">
-    Your actual products and prices will load from your LAZIZ business.
-  </div>
+  <div style="margin:18px 0 5px" class="line line-head"><span>Item</span><span>Qty</span><span>Unit price</span><span class="line-total">Line total</span><span></span></div>
+  <div id="lines"><div class="empty">Loading your products…</div></div>
+  <div class="notice" id="empty-note">Your actual products and prices will load from your LAZIZ business.</div>
 </section>
-
 <aside class="panel">
   <h3 style="margin:0 0 5px">Sale summary</h3>
   <div class="muted" style="font-size:12px">Review the items before payment.</div>
-
-  <div class="field">
-    <label>Customer name (optional)</label>
-    <input id="customer" placeholder="Walk-in customer">
-  </div>
-
-  <div class="field">
-    <label>Payment method</label>
-    <select id="payment">
-      <option>Cash</option>
-      <option>Bank transfer</option>
-      <option>POS / Card</option>
-      <option>Credit</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Member / customer discount (₦)</label>
-    <input id="discount" type="number" min="0" step="0.01"
-      value="0" oninput="renderTotals()" placeholder="Enter discount amount">
-  </div>
-
+  <div class="field"><label>Customer name (optional)</label><input id="customer" placeholder="Walk-in customer"></div>
+  <div class="field"><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>POS / Card</option><option>Credit</option></select></div>
+  <div class="field"><label>Member / customer discount (₦)</label><input id="discount" type="number" min="0" step="0.01" value="0" oninput="renderTotals()" placeholder="Enter discount amount"></div>
   <div class="totalrow"><span class="muted">Subtotal</span><b id="subtotal">₦0</b></div>
   <div class="totalrow"><span class="muted">Discount</span><b id="discount-view">−₦0</b></div>
   <div class="totalrow"><span class="muted">Balance to pay</span><span class="total" id="grand">₦0</span></div>
-
-  <button id="paid" class="btn paid" onclick="completeSale()" disabled>
-    COMPLETE SALE
-  </button>
-
-  <button id="print-button" class="btn secondary"
-    style="width:100%;margin-top:9px" onclick="printReceipt()" disabled>
-    Print last receipt
-  </button>
-
+  <button id="paid" class="btn paid" onclick="completeSale()" disabled>COMPLETE SALE</button>
+  <button id="print-button" class="btn secondary" style="width:100%;margin-top:9px" onclick="printReceipt()" disabled>Print last receipt</button>
   <div id="feedback" style="margin-top:12px"></div>
-
-  <div class="notice" id="queue-note">
-    Offline sales are saved on this device and submitted when internet returns.
-  </div>
-
-  <button id="sync" class="btn secondary"
-    style="width:100%;margin-top:10px" onclick="syncQueue()">
-    Sync pending offline sales
-  </button>
+  <div class="notice" id="queue-note">Offline sales are saved on this device and submitted when internet returns.</div>
+  <button id="sync" class="btn secondary" style="width:100%;margin-top:10px" onclick="syncQueue()">Sync pending offline sales</button>
 </aside>
 </div>
 </main>
-
 <div id="print-area" class="hidden"></div>
 
 <script src="./supabase-config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-  crossorigin="anonymous"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script>
 'use strict';
 
 /* LAZIZ BUSINESS SETTINGS */
 const BUSINESS_ID='cb0bf321-2efd-47f1-9a2b-cb329b96a35f';
 
-/* IMPORTANT: KEEP THESE V2 STORAGE NAMES */
+/* KEEP THESE EXISTING V2 STORAGE NAMES */
 const CACHE='laziz_pos_catalog_v2';
 const QUEUE='laziz_pos_pending_v2';
-
 const LOCAL_LOGIN='laziz_cashier_local_login_v1';
 const AUTH_STORAGE='laziz-cashier-auth-v1';
 const LOCAL_ITERATIONS=210000;
 
 const $=s=>document.querySelector(s);
 const fmt=n=>'₦'+Number(n||0).toLocaleString('en-NG',{maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
-  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-}[c]));
+let sb=null,businessId=BUSINESS_ID,businessName='',products=[],cart=[],busy=false;
+let pending=readQueue(),lastReceipt=null;
 
-let sb=null;
-let businessId=BUSINESS_ID;
-let businessName='';
-let products=[];
-let cart=[];
-let busy=false;
-let pending=readQueue();
-let lastReceipt=null;
-
-function readQueue(){
-  try{return JSON.parse(localStorage.getItem(QUEUE)||'[]')}
-  catch(e){return []}
-}
-
-function saveQueue(){
-  localStorage.setItem(QUEUE,JSON.stringify(pending));
-  updateQueueNote();
-}
-
-function getCached(){
-  try{return JSON.parse(localStorage.getItem(CACHE)||'null')}
-  catch(e){return null}
-}
-
-function cacheCatalog(){
-  localStorage.setItem(CACHE,JSON.stringify({
-    businessId,businessName,products,updatedAt:new Date().toISOString()
-  }));
-}
-
-function say(message,kind=''){
-  $('#feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`;
-}
-
-function loginMessage(message,kind='error'){
-  $('#login-feedback').innerHTML=
-    `<div class="receipt ${kind}">${esc(message)}</div>`;
-}
-
-function updateStatus(){
-  $('#connection').textContent=
-    (navigator.onLine?'Online':'Offline')+
-    ' · LAZIZ staff counter';
-}
-
-function updateQueueNote(){
-  $('#queue-note').textContent=pending.length
-    ?pending.length+' offline sale(s) waiting to sync. Do not clear this browser data.'
-    :'No pending offline sales.';
-}
+function readQueue(){try{return JSON.parse(localStorage.getItem(QUEUE)||'[]')}catch(e){return []}}
+function saveQueue(){localStorage.setItem(QUEUE,JSON.stringify(pending));updateQueueNote()}
+function getCached(){try{return JSON.parse(localStorage.getItem(CACHE)||'null')}catch(e){return null}}
+function cacheCatalog(){localStorage.setItem(CACHE,JSON.stringify({businessId,businessName,products,updatedAt:new Date().toISOString()}))}
+function say(message,kind=''){$('#feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
+function loginMessage(message,kind='error'){$('#login-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
+function ownerMessage(message,kind='error'){$('#owner-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
+function updateStatus(){$('#connection').textContent=(navigator.onLine?'Online':'Offline')+' · LAZIZ staff counter'}
+function updateQueueNote(){$('#queue-note').textContent=pending.length?pending.length+' offline sale(s) waiting to sync. Do not clear this browser data.':'No pending offline sales.'}
 
 function showSalesApp(){
   $('#staff-login').classList.add('hidden');
+  $('#owner-setup').classList.add('hidden');
   $('#sales-app').classList.remove('hidden');
 }
-
 function showLogin(){
   $('#sales-app').classList.add('hidden');
+  $('#owner-setup').classList.add('hidden');
   $('#staff-login').classList.remove('hidden');
   $('#staff-password').value='';
+}
+function showOwnerSetup(){
+  $('#staff-login').classList.add('hidden');
+  $('#sales-app').classList.add('hidden');
+  $('#owner-setup').classList.remove('hidden');
+  $('#owner-feedback').innerHTML='';
+}
+function backToStaffLogin(){
+  $('#owner-setup').classList.add('hidden');
+  $('#staff-login').classList.remove('hidden');
+  $('#owner-email').value='';
+  $('#owner-password').value='';
+  $('#new-staff-password').value='';
+  $('#confirm-staff-password').value='';
+  $('#owner-feedback').innerHTML='';
 }
 
 function initSupabase(){
   const cfg=window.LAZIZ_SUPABASE_CONFIG;
-
   if(!cfg?.url||!cfg?.publishableKey||!window.supabase?.createClient){
     throw new Error('Supabase configuration or Supabase library is missing.');
   }
-
   if(!sb){
     sb=window.supabase.createClient(cfg.url,cfg.publishableKey,{
-      auth:{
-        persistSession:true,
-        autoRefreshToken:true,
-        detectSessionInUrl:false,
-        storageKey:AUTH_STORAGE
-      }
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:AUTH_STORAGE}
     });
   }
 }
 
+/* Extract useful messages returned by Supabase Edge Functions */
+async function functionErrorMessage(error,data){
+  if(data?.error)return data.error;
+  try{
+    const response=error?.context;
+    if(response){
+      const copy=typeof response.clone==='function'?response.clone():response;
+      const body=await copy.json();
+      if(body?.error)return body.error;
+      if(body?.message)return body.message;
+    }
+  }catch(e){}
+  return error?.message||'The server request failed.';
+}
+
+/* OWNER-ONLY SETUP OF THE SHARED STAFF PASSWORD */
+async function ownerSetup(){
+  const email=$('#owner-email').value.trim();
+  const ownerPassword=$('#owner-password').value;
+  const staffPassword=$('#new-staff-password').value;
+  const confirmation=$('#confirm-staff-password').value;
+  const button=$('#owner-setup-button');
+
+  if(!navigator.onLine){
+    ownerMessage('Connect to the internet before setting or changing the staff password.');
+    return;
+  }
+  if(!email||!ownerPassword||!staffPassword||!confirmation){
+    ownerMessage('Complete all four fields.');
+    return;
+  }
+  if(staffPassword.length<8||staffPassword.length>128){
+    ownerMessage('The staff password must contain 8 to 128 characters.');
+    return;
+  }
+  if(staffPassword!==confirmation){
+    ownerMessage('The two staff passwords do not match.');
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent='VERIFYING OWNER…';
+  $('#owner-feedback').innerHTML='';
+  let ownerSessionStarted=false;
+
+  try{
+    initSupabase();
+
+    const {data:loginData,error:loginError}=await sb.auth.signInWithPassword({
+      email,password:ownerPassword
+    });
+    if(loginError)throw loginError;
+    if(!loginData?.session?.access_token)throw new Error('The owner account session could not be established.');
+    ownerSessionStarted=true;
+
+    button.textContent='SAVING STAFF PASSWORD…';
+    const {data,error}=await sb.functions.invoke('cashier-auth',{
+      body:{action:'setup',business_id:businessId,password:staffPassword}
+    });
+
+    if(error)throw new Error(await functionErrorMessage(error,data));
+    if(!data?.success)throw new Error(data?.error||'The server did not confirm the staff-password setup.');
+
+    ownerMessage('Staff password saved successfully. Salesgirls can now sign in with the new shared password.','ok');
+    $('#owner-password').value='';
+    $('#new-staff-password').value='';
+    $('#confirm-staff-password').value='';
+  }catch(e){
+    console.error('Owner staff-password setup failed:',e);
+    ownerMessage(e.message||'Owner setup failed. Please try again.');
+  }finally{
+    if(ownerSessionStarted){
+      try{
+        const {error}=await sb.auth.signOut();
+        if(error)console.warn('Could not clear owner session from offline counter:',error);
+      }catch(e){console.warn('Could not clear owner session:',e)}
+    }
+    button.disabled=false;
+    button.textContent='SAVE STAFF PASSWORD';
+  }
+}
+
 /* LOCAL DEVICE PASSWORD VERIFICATION */
-
-function bytesToBase64(bytes){
-  let binary='';
-  bytes.forEach(b=>binary+=String.fromCharCode(b));
-  return btoa(binary);
-}
-
-function base64ToBytes(value){
-  return Uint8Array.from(atob(value),c=>c.charCodeAt(0));
-}
-
+function bytesToBase64(bytes){let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary)}
+function base64ToBytes(value){return Uint8Array.from(atob(value),c=>c.charCodeAt(0))}
 async function deriveLocalHash(password,salt){
-  const key=await crypto.subtle.importKey(
-    'raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']
-  );
-
-  return new Uint8Array(await crypto.subtle.deriveBits({
-    name:'PBKDF2',
-    salt,
-    iterations:LOCAL_ITERATIONS,
-    hash:'SHA-256'
-  },key,256));
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:LOCAL_ITERATIONS,hash:'SHA-256'},key,256));
 }
-
 async function saveLocalPassword(password){
   const salt=crypto.getRandomValues(new Uint8Array(16));
   const hash=await deriveLocalHash(password,salt);
-
-  localStorage.setItem(LOCAL_LOGIN,JSON.stringify({
-    businessId,
-    iterations:LOCAL_ITERATIONS,
-    salt:bytesToBase64(salt),
-    hash:bytesToBase64(hash)
-  }));
+  localStorage.setItem(LOCAL_LOGIN,JSON.stringify({businessId,iterations:LOCAL_ITERATIONS,salt:bytesToBase64(salt),hash:bytesToBase64(hash)}));
 }
-
 async function verifyLocalPassword(password){
   let saved;
-
-  try{saved=JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}
-  catch(e){return false}
-
+  try{saved=JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}catch(e){return false}
   if(!saved||saved.businessId!==businessId)return false;
-
   try{
-    const salt=base64ToBytes(saved.salt);
-    const expected=base64ToBytes(saved.hash);
+    const salt=base64ToBytes(saved.salt),expected=base64ToBytes(saved.hash);
     const actual=await deriveLocalHash(password,salt);
-
     if(actual.length!==expected.length)return false;
-
     let difference=0;
     for(let i=0;i<actual.length;i++)difference|=actual[i]^expected[i];
-
     return difference===0;
-  }catch(e){
-    return false;
-  }
+  }catch(e){return false}
 }
 
 /* ONLINE STAFF LOGIN */
-
 async function onlineStaffLogin(password){
   initSupabase();
-
-  const {data,error}=await sb.functions.invoke('cashier-auth',{
-    body:{
-      action:'login',
-      business_id:businessId,
-      password
-    }
-  });
-
-  if(error){
-    throw new Error(data?.error||error.message||'Staff login failed.');
-  }
-
+  const {data,error}=await sb.functions.invoke('cashier-auth',{body:{action:'login',business_id:businessId,password}});
+  if(error)throw new Error(await functionErrorMessage(error,data));
   if(!data?.success||!data.session?.access_token||!data.session?.refresh_token){
     throw new Error(data?.error||'The staff login response was incomplete.');
   }
-
-  const {error:setError}=await sb.auth.setSession({
-    access_token:data.session.access_token,
-    refresh_token:data.session.refresh_token
-  });
-
+  const {error:setError}=await sb.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
   if(setError)throw setError;
-
   await verifyStaffMembership();
   await refreshProducts();
-
   await saveLocalPassword(password);
 }
-
-/* CONFIRM THIS SESSION IS A CASHIER FOR THIS BUSINESS */
-
 async function verifyStaffMembership(){
   const {data:{user},error:userError}=await sb.auth.getUser();
-
-  if(userError||!user){
-    throw new Error('The staff session could not be verified.');
-  }
-
-  const {data:membership,error}=await sb
-    .from('business_members')
-    .select('business_id,role')
-    .eq('business_id',businessId)
-    .eq('user_id',user.id)
-    .maybeSingle();
-
+  if(userError||!user)throw new Error('The staff session could not be verified.');
+  const {data:membership,error}=await sb.from('business_members').select('business_id,role').eq('business_id',businessId).eq('user_id',user.id).maybeSingle();
   if(error)throw error;
-
   if(!membership||membership.role!=='cashier'){
     await sb.auth.signOut();
     throw new Error('This login is not authorised as a cashier for this business.');
   }
 }
-
-/* OFFLINE LOGIN */
-
 async function offlineStaffLogin(password){
   const cached=getCached();
-
   if(!cached||cached.businessId!==businessId||!cached.products){
     throw new Error('This device has not completed its first online setup. Connect to the internet and sign in first.');
   }
-
-  const valid=await verifyLocalPassword(password);
-
-  if(!valid){
+  if(!(await verifyLocalPassword(password))){
     throw new Error('Incorrect offline staff password. Connect to the internet if the password has recently changed.');
   }
-
   businessName=cached.businessName||'LAZIZ';
   products=cached.products||[];
-
   renderCatalog();
   showSalesApp();
   say('Offline access granted. Sales will be saved on this device.','ok');
   updateStatus();
 }
-
 async function staffLogin(){
-  const password=$('#staff-password').value;
-  const button=$('#staff-login-button');
-
-  if(!password){
-    loginMessage('Enter your staff password.');
-    return;
-  }
-
-  button.disabled=true;
-  button.textContent='SIGNING IN…';
-  $('#login-feedback').innerHTML='';
-
+  const password=$('#staff-password').value,button=$('#staff-login-button');
+  if(!password){loginMessage('Enter your staff password.');return}
+  button.disabled=true;button.textContent='SIGNING IN…';$('#login-feedback').innerHTML='';
   try{
     if(navigator.onLine){
       await onlineStaffLogin(password);
-
       showSalesApp();
       say('Staff login successful. LAZIZ catalogue is ready.','ok');
-
       await syncQueue();
     }else{
       await offlineStaffLogin(password);
@@ -457,451 +356,153 @@ async function staffLogin(){
   }catch(e){
     console.error(e);
     loginMessage(e.message||'Staff login could not be completed.');
+    try{if(sb)await sb.auth.signOut()}catch(ignore){}
   }finally{
-    button.disabled=false;
-    button.textContent='SIGN IN';
-    updateStatus();
+    button.disabled=false;button.textContent='SIGN IN';updateStatus();
   }
 }
-
-function lockCounter(){
-  cart=[];
-  render();
-  showLogin();
-  loginMessage('Counter locked. Enter the staff password to continue.','ok');
-}
+function lockCounter(){cart=[];render();showLogin();loginMessage('Counter locked. Enter the staff password to continue.','ok')}
 
 /* PRODUCT CATALOGUE */
-
 async function refreshProducts(){
-  const {data,error}=await sb
-    .from('products')
-    .select('id,name,sku,category,unit,price,quantity,reorder_level,active')
-    .eq('business_id',businessId)
-    .eq('active',true)
-    .order('name');
-
+  const {data,error}=await sb.from('products').select('id,name,sku,category,unit,price,quantity,reorder_level,active').eq('business_id',businessId).eq('active',true).order('name');
   if(error)throw error;
-
-  products=(data||[]).map(p=>({
-    ...p,
-    price:Number(p.price),
-    quantity:Number(p.quantity),
-    unit:p.unit||'unit'
-  }));
-
-  const {data:b,error:bErr}=await sb
-    .from('businesses')
-    .select('name')
-    .eq('id',businessId)
-    .single();
-
+  products=(data||[]).map(p=>({...p,price:Number(p.price),quantity:Number(p.quantity),unit:p.unit||'unit'}));
+  const {data:b,error:bErr}=await sb.from('businesses').select('name').eq('id',businessId).single();
   if(bErr)throw bErr;
-
-  businessName=b.name;
-  cacheCatalog();
-  renderCatalog();
-  updateStatus();
+  businessName=b.name;cacheCatalog();renderCatalog();updateStatus();
 }
-
 function renderCatalog(){
   $('#business').textContent=businessName||'Your LAZIZ business';
-
-  $('#empty-note').textContent=products.length
-    ?'Search your approved LAZIZ product catalogue by name or SKU.'
-    :'No active products found. The owner must add products first.';
-
+  $('#empty-note').textContent=products.length?'Search your approved LAZIZ product catalogue by name or SKU.':'No active products found. The owner must add products first.';
   $('#search').disabled=!products.length;
-
-  $('#lines').innerHTML=
-    '<div class="empty">'+
-    (products.length?'Start typing a product name or SKU.':'Your catalogue is empty.')+
-    '</div>';
+  $('#lines').innerHTML='<div class="empty">'+(products.length?'Start typing a product name or SKU.':'Your catalogue is empty.')+'</div>';
 }
-
 function findMatches(q){
   const term=q.trim().toLowerCase();
-
-  return products.filter(p=>(
-    (p.name+' '+(p.sku||'')+' '+(p.category||'')).toLowerCase().includes(term)
-  ));
+  return products.filter(p=>(p.name+' '+(p.sku||'')+' '+(p.category||'')).toLowerCase().includes(term));
 }
-
 $('#search').addEventListener('input',e=>{
-  const q=e.target.value.trim();
-  const box=$('#suggestions');
-
+  const q=e.target.value.trim(),box=$('#suggestions');
   if(!q){box.hidden=true;return}
-
   const list=findMatches(q).slice(0,15);
-
-  box.innerHTML=list.map(p=>`
-    <div class="suggestion" data-id="${esc(p.id)}">
-      <span><b>${esc(p.name)}</b><br>
-      <small>${esc(p.sku||p.category||'')}</small></span>
-      <span style="text-align:right"><b>${fmt(p.price)}</b><br>
-      <small>per ${esc(p.unit)} · ${p.quantity} available</small></span>
-    </div>
-  `).join('')||'<div class="suggestion">No matching product found.</div>';
-
+  box.innerHTML=list.map(p=>`<div class="suggestion" data-id="${esc(p.id)}"><span><b>${esc(p.name)}</b><br><small>${esc(p.sku||p.category||'')}</small></span><span style="text-align:right"><b>${fmt(p.price)}</b><br><small>per ${esc(p.unit)} · ${p.quantity} available</small></span></div>`).join('')||'<div class="suggestion">No matching product found.</div>';
   box.hidden=false;
 });
-
-$('#suggestions').addEventListener('click',e=>{
-  const row=e.target.closest('.suggestion[data-id]');
-  if(row)addItem(row.dataset.id);
-});
-
-document.addEventListener('click',e=>{
-  if(!e.target.closest('.suggest'))$('#suggestions').hidden=true;
-});
-
+$('#suggestions').addEventListener('click',e=>{const row=e.target.closest('.suggestion[data-id]');if(row)addItem(row.dataset.id)});
+document.addEventListener('click',e=>{if(!e.target.closest('.suggest'))$('#suggestions').hidden=true});
 function addItem(id){
-  const p=products.find(x=>x.id===id);
-  if(!p)return;
-
-  const line=cart.find(x=>x.id===id);
-
-  if(line)line.qty+=1;
-  else cart.push({id,qty:1});
-
-  $('#search').value='';
-  $('#suggestions').hidden=true;
-  render();
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const line=cart.find(x=>x.id===id);if(line)line.qty+=1;else cart.push({id,qty:1});
+  $('#search').value='';$('#suggestions').hidden=true;render();
 }
-
-function subtotal(){
-  return cart.reduce((sum,l)=>{
-    const p=products.find(x=>x.id===l.id);
-    return sum+(p?p.price*l.qty:0);
-  },0);
-}
-
+function subtotal(){return cart.reduce((sum,l)=>{const p=products.find(x=>x.id===l.id);return sum+(p?p.price*l.qty:0)},0)}
 function renderTotals(){
-  const sub=subtotal();
-  const raw=Number($('#discount').value||0);
-  const disc=Math.max(0,Math.min(raw,sub));
-
-  $('#subtotal').textContent=fmt(sub);
-  $('#discount-view').textContent='−'+fmt(disc);
-  $('#grand').textContent=fmt(sub-disc);
-
-  $('#paid').disabled=
-    busy||!cart.length||sub<=0||
-    !Number.isFinite(raw)||raw<0||raw>sub;
+  const sub=subtotal(),raw=Number($('#discount').value||0),disc=Math.max(0,Math.min(raw,sub));
+  $('#subtotal').textContent=fmt(sub);$('#discount-view').textContent='−'+fmt(disc);$('#grand').textContent=fmt(sub-disc);
+  $('#paid').disabled=busy||!cart.length||sub<=0||!Number.isFinite(raw)||raw<0||raw>sub;
 }
-
 function render(){
-  if(!cart.length){
-    $('#lines').innerHTML='<div class="empty">No items added yet.</div>';
-    renderTotals();
-    return;
-  }
-
+  if(!cart.length){$('#lines').innerHTML='<div class="empty">No items added yet.</div>';renderTotals();return}
   $('#lines').innerHTML=cart.map(l=>{
-    const p=products.find(x=>x.id===l.id);
-    if(!p)return '';
-
-    return `
-      <div class="line">
-        <span><b>${esc(p.name)}</b><br>
-        <small class="muted">per ${esc(p.unit)}</small></span>
-        <span><input type="number" min="0.001" step="0.001"
-          value="${l.qty}" data-qty="${esc(l.id)}"></span>
-        <span>${fmt(p.price)}</span>
-        <span class="line-total"><b>${fmt(p.price*l.qty)}</b></span>
-        <button class="remove" data-remove="${esc(l.id)}">×</button>
-      </div>
-    `;
+    const p=products.find(x=>x.id===l.id);if(!p)return '';
+    return `<div class="line"><span><b>${esc(p.name)}</b><br><small class="muted">per ${esc(p.unit)}</small></span><span><input type="number" min="0.001" step="0.001" value="${l.qty}" data-qty="${esc(l.id)}"></span><span>${fmt(p.price)}</span><span class="line-total"><b>${fmt(p.price*l.qty)}</b></span><button class="remove" data-remove="${esc(l.id)}">×</button></div>`;
   }).join('');
-
   renderTotals();
 }
-
 $('#lines').addEventListener('change',e=>{
-  const id=e.target.dataset.qty;
-  if(!id)return;
-
+  const id=e.target.dataset.qty;if(!id)return;
   const n=Number(e.target.value);
-
-  if(!Number.isFinite(n)||n<=0){
-    say('Enter a quantity greater than zero.','error');
-    return render();
-  }
-
-  const l=cart.find(x=>x.id===id);
-  if(l)l.qty=n;
-
-  render();
+  if(!Number.isFinite(n)||n<=0){say('Enter a quantity greater than zero.','error');return render()}
+  const l=cart.find(x=>x.id===id);if(l)l.qty=n;render();
 });
+$('#lines').addEventListener('click',e=>{const id=e.target.dataset.remove;if(id){cart=cart.filter(x=>x.id!==id);render()}});
 
-$('#lines').addEventListener('click',e=>{
-  const id=e.target.dataset.remove;
-  if(id){
-    cart=cart.filter(x=>x.id!==id);
-    render();
-  }
-});
-
-function transactionId(){
-  return crypto.randomUUID
-    ?crypto.randomUUID()
-    :'laziz-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-}
-
-function newReceipt(){
-  return 'LZ-'+Date.now().toString().slice(-8);
-}
+function transactionId(){return crypto.randomUUID?crypto.randomUUID():'laziz-'+Date.now()+'-'+Math.random().toString(36).slice(2)}
+function newReceipt(){return 'LZ-'+Date.now().toString().slice(-8)}
 
 /* RECEIPT */
-
 function buildReceipt(sale){
-  const rows=sale.items.map(i=>`
-    <tr>
-      <td>${esc(i.name)}</td>
-      <td style="text-align:right">${i.qty}</td>
-      <td style="text-align:right">${fmt(i.price*i.qty)}</td>
-    </tr>
-  `).join('');
-
+  const rows=sale.items.map(i=>`<tr><td>${esc(i.name)}</td><td style="text-align:right">${i.qty}</td><td style="text-align:right">${fmt(i.price*i.qty)}</td></tr>`).join('');
   const sub=sale.items.reduce((n,i)=>n+i.price*i.qty,0);
-
-  return `
-    <div style="max-width:360px;margin:auto;font:13px Arial">
-      <h2 style="text-align:center;margin-bottom:3px">LAZIZ</h2>
-      <p style="text-align:center;margin-top:0">Sales receipt</p>
-      <hr>
-      <p>Receipt: ${esc(sale.receipt)}<br>
-      Date: ${esc(new Date(sale.createdAt).toLocaleString())}<br>
-      Customer: ${esc(sale.customer||'Walk-in customer')}<br>
-      Payment: ${esc(sale.payment)}</p>
-      <hr>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr><th align="left">Item</th><th>Qty</th><th align="right">Amount</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <hr>
-      <p>Subtotal: <b>${fmt(sub)}</b><br>
-      Discount: <b>${fmt(sale.discount)}</b><br>
-      Total paid: <b>${fmt(sub-sale.discount)}</b></p>
-      <hr>
-      <p style="text-align:center">Thank you for shopping with LAZIZ.</p>
-    </div>
-  `;
+  return `<div style="max-width:360px;margin:auto;font:13px Arial"><h2 style="text-align:center;margin-bottom:3px">LAZIZ</h2><p style="text-align:center;margin-top:0">Sales receipt</p><hr><p>Receipt: ${esc(sale.receipt)}<br>Date: ${esc(new Date(sale.createdAt).toLocaleString())}<br>Customer: ${esc(sale.customer||'Walk-in customer')}<br>Payment: ${esc(sale.payment)}</p><hr><table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Item</th><th>Qty</th><th align="right">Amount</th></tr></thead><tbody>${rows}</tbody></table><hr><p>Subtotal: <b>${fmt(sub)}</b><br>Discount: <b>${fmt(sale.discount)}</b><br>Total paid: <b>${fmt(sub-sale.discount)}</b></p><hr><p style="text-align:center">Thank you for shopping with LAZIZ.</p></div>`;
 }
-
 function printReceipt(){
-  if(!lastReceipt){
-    say('There is no receipt to print yet.','error');
-    return;
-  }
-
+  if(!lastReceipt){say('There is no receipt to print yet.','error');return}
   const printWindow=window.open('','_blank');
-
-  if(!printWindow){
-    say('Allow pop-ups in Chrome to print receipts.','error');
-    return;
-  }
-
-  printWindow.document.write(`
-    <!doctype html><html><head><title>LAZIZ Receipt</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    </head><body>${buildReceipt(lastReceipt)}
-    <script>window.onload=()=>window.print();<\/script>
-    </body></html>
-  `);
-
+  if(!printWindow){say('Allow pop-ups in Chrome to print receipts.','error');return}
+  printWindow.document.write(`<!doctype html><html><head><title>LAZIZ Receipt</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${buildReceipt(lastReceipt)}<script>window.onload=()=>window.print();<\/script></body></html>`);
   printWindow.document.close();
 }
 
 /* SALES AND SYNCHRONISATION */
-
 async function sendSale(sale){
   const {data,error}=await sb.rpc('create_sale_atomic',{
-    p_business_id:sale.businessId,
-    p_receipt_no:sale.receipt,
-    p_customer_name:sale.customer,
-    p_payment_method:sale.payment,
-    p_discount:sale.discount,
-    p_client_transaction_id:sale.transactionId,
-    p_items:sale.items.map(i=>({
-      product_id:i.id,
-      quantity:i.qty
-    })),
-    p_source:sale.source
+    p_business_id:sale.businessId,p_receipt_no:sale.receipt,p_customer_name:sale.customer,
+    p_payment_method:sale.payment,p_discount:sale.discount,p_client_transaction_id:sale.transactionId,
+    p_items:sale.items.map(i=>({product_id:i.id,quantity:i.qty})),p_source:sale.source
   });
-
-  if(error)throw error;
-  return data;
+  if(error)throw error;return data;
 }
-
 async function completeSale(){
   if(busy||!cart.length)return;
-
-  if(!businessId){
-    say('This device has not been connected to a LAZIZ business yet.','error');
-    return;
-  }
-
-  const sub=subtotal();
-  const discount=Number($('#discount').value||0);
-
-  if(!Number.isFinite(discount)||discount<0||discount>sub){
-    say('Discount must be between ₦0 and the subtotal.','error');
-    return;
-  }
-
+  if(!businessId){say('This device has not been connected to a LAZIZ business yet.','error');return}
+  const sub=subtotal(),discount=Number($('#discount').value||0);
+  if(!Number.isFinite(discount)||discount<0||discount>sub){say('Discount must be between ₦0 and the subtotal.','error');return}
   for(const l of cart){
     const p=products.find(x=>x.id===l.id);
-
-    if(!p||p.quantity<l.qty){
-      say('Not enough saved stock for '+(p?.name||'an item')+'.','error');
-      return;
-    }
+    if(!p||p.quantity<l.qty){say('Not enough saved stock for '+(p?.name||'an item')+'.','error');return}
   }
-
   const sale={
-    businessId,
-    receipt:newReceipt(),
-    transactionId:transactionId(),
-    customer:$('#customer').value.trim(),
-    payment:$('#payment').value,
-    discount,
-    items:cart.map(l=>{
-      const p=products.find(x=>x.id===l.id);
-      return {id:l.id,qty:l.qty,name:p.name,price:p.price};
-    }),
-    source:navigator.onLine?'online':'offline_sync',
-    createdAt:new Date().toISOString()
+    businessId,receipt:newReceipt(),transactionId:transactionId(),customer:$('#customer').value.trim(),
+    payment:$('#payment').value,discount,
+    items:cart.map(l=>{const p=products.find(x=>x.id===l.id);return {id:l.id,qty:l.qty,name:p.name,price:p.price}}),
+    source:navigator.onLine?'online':'offline_sync',createdAt:new Date().toISOString()
   };
-
-  busy=true;
-  renderTotals();
-  $('#paid').textContent='PLEASE WAIT…';
-
+  busy=true;renderTotals();$('#paid').textContent='PLEASE WAIT…';
   try{
     if(navigator.onLine&&sb){
-      await sendSale(sale);
-
-      lastReceipt=sale;
-      $('#print-button').disabled=false;
-
-      say('Sale saved securely. Stock has been updated in LAZIZ.','ok');
-      await refreshProducts();
+      await sendSale(sale);lastReceipt=sale;$('#print-button').disabled=false;
+      say('Sale saved securely. Stock has been updated in LAZIZ.','ok');await refreshProducts();
     }else{
-      pending.push(sale);
-      saveQueue();
-
-      sale.items.forEach(l=>{
-        const p=products.find(x=>x.id===l.id);
-        if(p)p.quantity-=l.qty;
-      });
-
-      cacheCatalog();
-
-      lastReceipt=sale;
-      $('#print-button').disabled=false;
-
+      pending.push(sale);saveQueue();
+      sale.items.forEach(l=>{const p=products.find(x=>x.id===l.id);if(p)p.quantity-=l.qty});
+      cacheCatalog();lastReceipt=sale;$('#print-button').disabled=false;
       say('Sale saved on this device. It will sync when internet returns.','ok');
     }
-
-    cart=[];
-    $('#customer').value='';
-    $('#discount').value='0';
-    render();
-  }catch(e){
-    console.error(e);
-    say(e.message||'Sale could not be confirmed. Check the connection before retrying.','error');
-  }finally{
-    busy=false;
-    $('#paid').textContent='COMPLETE SALE';
-    renderTotals();
-    updateStatus();
-  }
+    cart=[];$('#customer').value='';$('#discount').value='0';render();
+  }catch(e){console.error(e);say(e.message||'Sale could not be confirmed. Check the connection before retrying.','error')}
+  finally{busy=false;$('#paid').textContent='COMPLETE SALE';renderTotals();updateStatus()}
 }
-
 async function syncQueue(){
-  if(!navigator.onLine||!sb||!businessId){
-    updateQueueNote();
-    return;
-  }
-
-  try{
-    await verifyStaffMembership();
-  }catch(e){
-    console.error(e);
-    say('Staff session needs to be renewed before syncing.','error');
-    return;
-  }
-
+  if(!navigator.onLine||!sb||!businessId){updateQueueNote();return}
+  try{await verifyStaffMembership()}catch(e){console.error(e);say('Staff session needs to be renewed before syncing.','error');return}
   let changed=false;
-
   for(let i=0;i<pending.length;){
     const sale=pending[i];
-
-    if(sale.businessId!==businessId){
-      i++;
-      continue;
-    }
-
-    try{
-      sale.source='offline_sync';
-      await sendSale(sale);
-      pending.splice(i,1);
-      changed=true;
-    }catch(e){
-      console.error('Offline sale sync failed:',e);
-      say('A pending sale could not sync: '+(e.message||'Please try again.'),'error');
-      break;
-    }
+    if(sale.businessId!==businessId){i++;continue}
+    try{sale.source='offline_sync';await sendSale(sale);pending.splice(i,1);changed=true}
+    catch(e){console.error('Offline sale sync failed:',e);say('A pending sale could not sync: '+(e.message||'Please try again.'),'error');break}
   }
-
-  if(changed){
-    saveQueue();
-    await refreshProducts();
-    say('Pending offline sales synced successfully.','ok');
-  }
-
+  if(changed){saveQueue();await refreshProducts();say('Pending offline sales synced successfully.','ok')}
   updateQueueNote();
 }
 
 window.addEventListener('online',async()=>{
   updateStatus();
-
   if(!$('#sales-app').classList.contains('hidden')){
-    try{
-      initSupabase();
-      await syncQueue();
-      await refreshProducts();
-    }catch(e){
-      console.error(e);
-      say('Connection returned, but LAZIZ could not refresh yet.','error');
-    }
+    try{initSupabase();await syncQueue();await refreshProducts()}
+    catch(e){console.error(e);say('Connection returned, but LAZIZ could not refresh yet.','error')}
   }
 });
-
 window.addEventListener('offline',updateStatus);
 
-updateQueueNote();
-updateStatus();
-
-/* STARTUP: ALWAYS SHOW STAFF LOGIN */
-try{
-  initSupabase();
-}catch(e){
-  console.warn(e.message);
-}
-
+updateQueueNote();updateStatus();
+try{initSupabase()}catch(e){console.warn(e.message)}
 const cached=getCached();
-
-if(cached&&cached.businessId===businessId){
-  businessName=cached.businessName||'LAZIZ';
-  products=cached.products||[];
-}
-
-$('#staff-password').addEventListener('keydown',e=>{
-  if(e.key==='Enter')staffLogin();
-});
+if(cached&&cached.businessId===businessId){businessName=cached.businessName||'LAZIZ';products=cached.products||[]}
+$('#staff-password').addEventListener('keydown',e=>{if(e.key==='Enter')staffLogin()});
+$('#confirm-staff-password').addEventListener('keydown',e=>{if(e.key==='Enter')ownerSetup()});
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
@@ -911,6 +512,5 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-
 </body>
 </html>
