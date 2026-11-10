@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "laziz-offline-v3";
+const CACHE_NAME = "laziz-offline-v4";
 
 const SUPABASE_CDN =
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
