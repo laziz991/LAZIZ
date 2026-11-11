@@ -83,7 +83,7 @@
           password:f.get('password'),
           options:{
             data:{full_name:String(f.get('owner')).trim()},
-            emailRedirectTo:location.origin==='null'?undefined:location.origin
+            emailRedirectTo:'https://laziz991.github.io/LAZIZ/'
           }
         });
         if(error)throw error;
