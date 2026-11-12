@@ -11,7 +11,7 @@
 body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
 .head{background:#10251e;color:#fff;padding:17px 4vw;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .logo{font-size:21px;font-weight:900;letter-spacing:2px}.logo span{color:#e5bd69}
-.status{font-size:12px;color:#cfe4d5}
+.status{font-size:12px;color:#cfe4d5}.head-menu{position:relative}.head-menu summary{list-style:none;cursor:pointer;font-size:26px;line-height:1;padding:4px 10px;border-radius:8px}.head-menu summary::-webkit-details-marker{display:none}.head-menu[open] .menu-items{display:block}.menu-items{display:none;position:absolute;right:0;top:38px;z-index:20;min-width:180px;background:#fff;color:#18251f;border:1px solid #dce5df;border-radius:10px;box-shadow:0 8px 24px #0002;padding:7px}.menu-items a,.menu-items button{display:block;width:100%;text-align:left;padding:11px;border:0;border-radius:7px;background:#fff;color:#18251f;text-decoration:none;font:inherit;cursor:pointer}.menu-items a:hover,.menu-items button:hover{background:#f0f6f1}
 .wrap{max-width:1200px;margin:24px auto;padding:0 18px}
 .intro{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
 .intro h1{margin:0 0 5px;font-size:25px}
@@ -53,38 +53,43 @@ body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
 <body>
 <header class="head">
   <div class="logo">LAZIZ<span>.</span> <small style="font-size:11px;letter-spacing:0;color:#d4e0d8">SALES COUNTER</small></div>
-  <div class="status" id="connection">Starting offline app…</div>
+  <div style="display:flex;align-items:center;gap:12px"><div class="status" id="connection">Starting offline app…</div><details class="head-menu"><summary aria-label="Menu">⋮</summary><div class="menu-items"><a href="https://laziz991.github.io/LAZIZ/">Main Account</a><button type="button" onclick="lockCounter();document.querySelector('.head-menu').open=false">Lock counter</button></div></details></div>
 </header>
 
 <section id="staff-login" class="login-wrap">
   <div class="login-card">
     <h2>LAZIZ Staff Login</h2>
-    <p class="muted">Enter your shared staff password to open the sales counter.</p>
-    <label for="staff-password">Staff password</label>
-    <input id="staff-password" type="password" autocomplete="current-password" placeholder="Enter staff password">
+    <p class="muted">Sign in with your own staff account and your business connection code.</p>
+    <label for="connection-code">Business connection code</label>
+    <input id="connection-code" type="text" autocomplete="off" placeholder="LZ-XXXX-XXXX-XXXX-XXXX">
+    <label for="staff-username">Your username</label>
+    <input id="staff-username" type="text" autocomplete="username" placeholder="Your staff username">
+    <label for="staff-password">Your password</label>
+    <input id="staff-password" type="password" autocomplete="current-password" placeholder="Your personal password">
     <button id="staff-login-button" class="btn" onclick="staffLogin()">SIGN IN</button>
     <div id="login-feedback" style="margin-top:12px"></div>
-    <button class="btn secondary" style="width:100%;margin-top:12px" onclick="showOwnerSetup()">OWNER: SET / CHANGE STAFF PASSWORD</button>
-    <p class="muted" style="font-size:11px;margin-top:18px">First-time setup and initial product setup require internet. After successful staff login, this device can unlock offline.</p>
+    <p style="text-align:center;margin:17px 0 0">New salesgirl? <a href="#" onclick="showRegister();return false">Create your staff account</a></p>
+    <p class="muted" style="font-size:11px;margin-top:15px">Your first registration and first sign-in need internet. After signing in once, this device can also unlock your counter offline.</p>
   </div>
 </section>
 
-<section id="owner-setup" class="login-wrap hidden">
+<section id="staff-register" class="login-wrap hidden">
   <div class="login-card">
-    <h2>Owner staff-password setup</h2>
-    <p class="muted">Sign in with the existing business owner account. This sets a separate shared password for salesgirls; it does not change the owner's main account password.</p>
-    <label for="owner-email">Owner email</label>
-    <input id="owner-email" type="email" autocomplete="username" placeholder="Owner account email">
-    <label for="owner-password">Existing owner password</label>
-    <input id="owner-password" type="password" autocomplete="current-password" placeholder="Owner account password">
-    <label for="new-staff-password">New shared staff password</label>
-    <input id="new-staff-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="At least 8 characters">
-    <label for="confirm-staff-password">Confirm staff password</label>
-    <input id="confirm-staff-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Enter it again">
-    <button id="owner-setup-button" class="btn" onclick="ownerSetup()">SAVE STAFF PASSWORD</button>
-    <button class="btn secondary" style="width:100%;margin-top:10px" onclick="backToStaffLogin()">BACK TO STAFF LOGIN</button>
-    <div id="owner-feedback" style="margin-top:12px"></div>
-    <p class="muted" style="font-size:11px;margin-top:15px">Internet connection is required. The owner account is used only to authorize this setup and is signed out of this offline counter afterward.</p>
+    <h2>Create your staff account</h2>
+    <p class="muted">Ask the business owner for the connection code. Choose your own username and password.</p>
+    <label for="register-code">Business connection code</label>
+    <input id="register-code" type="text" autocomplete="off" placeholder="Enter owner’s connection code">
+    <label for="register-name">Your full name</label>
+    <input id="register-name" type="text" autocomplete="name" placeholder="Your full name">
+    <label for="register-username">Choose a username</label>
+    <input id="register-username" type="text" autocomplete="username" placeholder="3–24 letters or numbers">
+    <label for="register-password">Create your password</label>
+    <input id="register-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="At least 8 characters">
+    <label for="register-confirm">Confirm your password</label>
+    <input id="register-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Enter it again">
+    <button id="register-button" class="btn" onclick="registerStaff()">CREATE STAFF ACCOUNT</button>
+    <div id="register-feedback" style="margin-top:12px"></div>
+    <p style="text-align:center;margin:17px 0 0"><a href="#" onclick="showLogin();return false">Back to staff login</a></p>
   </div>
 </section>
 
@@ -128,7 +133,7 @@ body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
 'use strict';
 
 /* LAZIZ BUSINESS SETTINGS */
-const BUSINESS_ID='cb0bf321-2efd-47f1-9a2b-cb329b96a35f';
+// Business ID is securely returned by cashier-auth after the connection code is verified.
 
 /* KEEP THESE EXISTING V2 STORAGE NAMES */
 const CACHE='laziz_pos_catalog_v2';
@@ -141,7 +146,7 @@ const $=s=>document.querySelector(s);
 const fmt=n=>'₦'+Number(n||0).toLocaleString('en-NG',{maximumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-let sb=null,businessId=BUSINESS_ID,businessName='',products=[],cart=[],busy=false;
+let sb=null,businessId=null,businessName='',products=[],cart=[],busy=false,staffUsername='',staffFullName='';
 let pending=readQueue(),lastReceipt=null;
 
 function readQueue(){try{return JSON.parse(localStorage.getItem(QUEUE)||'[]')}catch(e){return []}}
@@ -150,35 +155,26 @@ function getCached(){try{return JSON.parse(localStorage.getItem(CACHE)||'null')}
 function cacheCatalog(){localStorage.setItem(CACHE,JSON.stringify({businessId,businessName,products,updatedAt:new Date().toISOString()}))}
 function say(message,kind=''){$('#feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
 function loginMessage(message,kind='error'){$('#login-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
-function ownerMessage(message,kind='error'){$('#owner-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
+function registerMessage(message,kind='error'){$('#register-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
 function updateStatus(){$('#connection').textContent=(navigator.onLine?'Online':'Offline')+' · LAZIZ staff counter'}
 function updateQueueNote(){$('#queue-note').textContent=pending.length?pending.length+' offline sale(s) waiting to sync. Do not clear this browser data.':'No pending offline sales.'}
 
 function showSalesApp(){
   $('#staff-login').classList.add('hidden');
-  $('#owner-setup').classList.add('hidden');
+  $('#staff-register').classList.add('hidden');
   $('#sales-app').classList.remove('hidden');
 }
 function showLogin(){
   $('#sales-app').classList.add('hidden');
-  $('#owner-setup').classList.add('hidden');
+  $('#staff-register').classList.add('hidden');
   $('#staff-login').classList.remove('hidden');
   $('#staff-password').value='';
 }
-function showOwnerSetup(){
+function showRegister(){
   $('#staff-login').classList.add('hidden');
   $('#sales-app').classList.add('hidden');
-  $('#owner-setup').classList.remove('hidden');
-  $('#owner-feedback').innerHTML='';
-}
-function backToStaffLogin(){
-  $('#owner-setup').classList.add('hidden');
-  $('#staff-login').classList.remove('hidden');
-  $('#owner-email').value='';
-  $('#owner-password').value='';
-  $('#new-staff-password').value='';
-  $('#confirm-staff-password').value='';
-  $('#owner-feedback').innerHTML='';
+  $('#staff-register').classList.remove('hidden');
+  $('#register-feedback').innerHTML='';
 }
 
 function initSupabase(){
@@ -208,71 +204,34 @@ async function functionErrorMessage(error,data){
   return error?.message||'The server request failed.';
 }
 
-/* OWNER-ONLY SETUP OF THE SHARED STAFF PASSWORD */
-async function ownerSetup(){
-  const email=$('#owner-email').value.trim();
-  const ownerPassword=$('#owner-password').value;
-  const staffPassword=$('#new-staff-password').value;
-  const confirmation=$('#confirm-staff-password').value;
-  const button=$('#owner-setup-button');
-
-  if(!navigator.onLine){
-    ownerMessage('Connect to the internet before setting or changing the staff password.');
-    return;
-  }
-  if(!email||!ownerPassword||!staffPassword||!confirmation){
-    ownerMessage('Complete all four fields.');
-    return;
-  }
-  if(staffPassword.length<8||staffPassword.length>128){
-    ownerMessage('The staff password must contain 8 to 128 characters.');
-    return;
-  }
-  if(staffPassword!==confirmation){
-    ownerMessage('The two staff passwords do not match.');
-    return;
-  }
-
-  button.disabled=true;
-  button.textContent='VERIFYING OWNER…';
-  $('#owner-feedback').innerHTML='';
-  let ownerSessionStarted=false;
-
+/* INDIVIDUAL STAFF REGISTRATION */
+async function registerStaff(){
+  if(!navigator.onLine){registerMessage('Connect to the internet to create your staff account.');return}
+  const connectionCode=$('#register-code').value.trim();
+  const fullName=$('#register-name').value.trim();
+  const username=$('#register-username').value.trim().toLowerCase();
+  const password=$('#register-password').value;
+  const confirmation=$('#register-confirm').value;
+  if(!connectionCode||!fullName||!username||!password||!confirmation){registerMessage('Complete all fields.');return}
+  if(password.length<8||password.length>128){registerMessage('Your password must contain 8 to 128 characters.');return}
+  if(password!==confirmation){registerMessage('The passwords do not match.');return}
+  const button=$('#register-button');button.disabled=true;button.textContent='CREATING ACCOUNT…';
   try{
     initSupabase();
-
-    const {data:loginData,error:loginError}=await sb.auth.signInWithPassword({
-      email,password:ownerPassword
-    });
-    if(loginError)throw loginError;
-    if(!loginData?.session?.access_token)throw new Error('The owner account session could not be established.');
-    ownerSessionStarted=true;
-
-    button.textContent='SAVING STAFF PASSWORD…';
-    const {data,error}=await sb.functions.invoke('cashier-auth',{
-      body:{action:'setup',business_id:businessId,password:staffPassword}
-    });
-
+    const {data,error}=await sb.functions.invoke('cashier-auth',{body:{action:'register',connection_code:connectionCode,full_name:fullName,username,password}});
     if(error)throw new Error(await functionErrorMessage(error,data));
-    if(!data?.success)throw new Error(data?.error||'The server did not confirm the staff-password setup.');
-
-    ownerMessage('Staff password saved successfully. Salesgirls can now sign in with the new shared password.','ok');
-    $('#owner-password').value='';
-    $('#new-staff-password').value='';
-    $('#confirm-staff-password').value='';
-  }catch(e){
-    console.error('Owner staff-password setup failed:',e);
-    ownerMessage(e.message||'Owner setup failed. Please try again.');
-  }finally{
-    if(ownerSessionStarted){
-      try{
-        const {error}=await sb.auth.signOut();
-        if(error)console.warn('Could not clear owner session from offline counter:',error);
-      }catch(e){console.warn('Could not clear owner session:',e)}
-    }
-    button.disabled=false;
-    button.textContent='SAVE STAFF PASSWORD';
-  }
+    if(!data?.success||!data.session?.access_token||!data.session?.refresh_token)throw new Error(data?.error||'The server did not complete staff registration.');
+    businessId=data.business_id;businessName=data.business_name||'LAZIZ';staffUsername=data.username;staffFullName=data.full_name||fullName;
+    const {error:setError}=await sb.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
+    if(setError)throw setError;
+    await verifyStaffMembership();
+    await refreshProducts();
+    await saveLocalPassword(password,staffUsername,staffFullName);
+    $('#register-password').value='';$('#register-confirm').value='';
+    showSalesApp();say('Your personal staff account is ready. Welcome to '+businessName+'.','ok');
+    await syncQueue();
+  }catch(e){console.error(e);registerMessage(e.message||'Staff registration failed. Please try again.');try{if(sb)await sb.auth.signOut()}catch(ignore){}}
+  finally{button.disabled=false;button.textContent='CREATE STAFF ACCOUNT'}
 }
 
 /* LOCAL DEVICE PASSWORD VERIFICATION */
@@ -282,38 +241,38 @@ async function deriveLocalHash(password,salt){
   const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
   return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:LOCAL_ITERATIONS,hash:'SHA-256'},key,256));
 }
-async function saveLocalPassword(password){
+async function saveLocalPassword(password,username,fullName){
   const salt=crypto.getRandomValues(new Uint8Array(16));
   const hash=await deriveLocalHash(password,salt);
-  localStorage.setItem(LOCAL_LOGIN,JSON.stringify({businessId,iterations:LOCAL_ITERATIONS,salt:bytesToBase64(salt),hash:bytesToBase64(hash)}));
+  localStorage.setItem(LOCAL_LOGIN,JSON.stringify({businessId,username,fullName,iterations:LOCAL_ITERATIONS,salt:bytesToBase64(salt),hash:bytesToBase64(hash)}));
 }
-async function verifyLocalPassword(password){
+async function verifyLocalPassword(password,username){
   let saved;
   try{saved=JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}catch(e){return false}
-  if(!saved||saved.businessId!==businessId)return false;
+  if(!saved||saved.businessId!==businessId||saved.username!==username)return false;
   try{
     const salt=base64ToBytes(saved.salt),expected=base64ToBytes(saved.hash);
     const actual=await deriveLocalHash(password,salt);
     if(actual.length!==expected.length)return false;
-    let difference=0;
-    for(let i=0;i<actual.length;i++)difference|=actual[i]^expected[i];
+    let difference=0;for(let i=0;i<actual.length;i++)difference|=actual[i]^expected[i];
     return difference===0;
   }catch(e){return false}
 }
 
-/* ONLINE STAFF LOGIN */
-async function onlineStaffLogin(password){
-  initSupabase();
-  const {data,error}=await sb.functions.invoke('cashier-auth',{body:{action:'login',business_id:businessId,password}});
-  if(error)throw new Error(await functionErrorMessage(error,data));
-  if(!data?.success||!data.session?.access_token||!data.session?.refresh_token){
-    throw new Error(data?.error||'The staff login response was incomplete.');
-  }
+async function acceptStaffSession(data,password){
+  if(!data?.success||!data.session?.access_token||!data.session?.refresh_token)throw new Error(data?.error||'The staff login response was incomplete.');
+  businessId=data.business_id;businessName=data.business_name||'LAZIZ';staffUsername=data.username;staffFullName=data.full_name||'';
   const {error:setError}=await sb.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
   if(setError)throw setError;
   await verifyStaffMembership();
   await refreshProducts();
-  await saveLocalPassword(password);
+  await saveLocalPassword(password,staffUsername,staffFullName);
+}
+async function onlineStaffLogin(connectionCode,username,password){
+  initSupabase();
+  const {data,error}=await sb.functions.invoke('cashier-auth',{body:{action:'login',connection_code:connectionCode,username,password}});
+  if(error)throw new Error(await functionErrorMessage(error,data));
+  await acceptStaffSession(data,password);
 }
 async function verifyStaffMembership(){
   const {data:{user},error:userError}=await sb.auth.getUser();
@@ -321,45 +280,35 @@ async function verifyStaffMembership(){
   const {data:membership,error}=await sb.from('business_members').select('business_id,role').eq('business_id',businessId).eq('user_id',user.id).maybeSingle();
   if(error)throw error;
   if(!membership||membership.role!=='cashier'){
-    await sb.auth.signOut();
-    throw new Error('This login is not authorised as a cashier for this business.');
+    await sb.auth.signOut();throw new Error('This account is not authorised as a cashier for this business.');
   }
 }
-async function offlineStaffLogin(password){
+async function offlineStaffLogin(password,username){
+  let saved;try{saved=JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}catch(e){}
+  if(!saved||!saved.businessId||saved.username!==username)throw new Error('This staff account has not signed in online on this device yet. Connect to the internet for the first sign-in.');
+  businessId=saved.businessId;staffUsername=saved.username;staffFullName=saved.fullName||'';
   const cached=getCached();
-  if(!cached||cached.businessId!==businessId||!cached.products){
-    throw new Error('This device has not completed its first online setup. Connect to the internet and sign in first.');
-  }
-  if(!(await verifyLocalPassword(password))){
-    throw new Error('Incorrect offline staff password. Connect to the internet if the password has recently changed.');
-  }
-  businessName=cached.businessName||'LAZIZ';
-  products=cached.products||[];
-  renderCatalog();
-  showSalesApp();
-  say('Offline access granted. Sales will be saved on this device.','ok');
-  updateStatus();
+  if(!cached||cached.businessId!==businessId||!cached.products)throw new Error('The saved LAZIZ catalogue is missing. Connect to the internet and sign in again.');
+  if(!(await verifyLocalPassword(password,username)))throw new Error('Incorrect offline username or password.');
+  businessName=cached.businessName||'LAZIZ';products=cached.products||[];
+  renderCatalog();showSalesApp();say('Offline access granted. Sales will be saved on this device.','ok');updateStatus();
 }
 async function staffLogin(){
+  const connectionCode=$('#connection-code').value.trim();
+  const username=$('#staff-username').value.trim().toLowerCase();
   const password=$('#staff-password').value,button=$('#staff-login-button');
-  if(!password){loginMessage('Enter your staff password.');return}
+  if(!username||!password){loginMessage('Enter your username and password.');return}
   button.disabled=true;button.textContent='SIGNING IN…';$('#login-feedback').innerHTML='';
   try{
     if(navigator.onLine){
-      await onlineStaffLogin(password);
-      showSalesApp();
-      say('Staff login successful. LAZIZ catalogue is ready.','ok');
-      await syncQueue();
+      if(!connectionCode)throw new Error('Enter your business connection code to sign in online.');
+      await onlineStaffLogin(connectionCode,username,password);
+      showSalesApp();say('Staff login successful. LAZIZ catalogue is ready.','ok');await syncQueue();
     }else{
-      await offlineStaffLogin(password);
+      await offlineStaffLogin(password,username);
     }
-  }catch(e){
-    console.error(e);
-    loginMessage(e.message||'Staff login could not be completed.');
-    try{if(sb)await sb.auth.signOut()}catch(ignore){}
-  }finally{
-    button.disabled=false;button.textContent='SIGN IN';updateStatus();
-  }
+  }catch(e){console.error(e);loginMessage(e.message||'Staff login could not be completed.');try{if(sb)await sb.auth.signOut()}catch(ignore){}}
+  finally{button.disabled=false;button.textContent='SIGN IN';updateStatus()}
 }
 function lockCounter(){cart=[];render();showLogin();loginMessage('Counter locked. Enter the staff password to continue.','ok')}
 
@@ -499,10 +448,12 @@ window.addEventListener('offline',updateStatus);
 
 updateQueueNote();updateStatus();
 try{initSupabase()}catch(e){console.warn(e.message)}
-const cached=getCached();
-if(cached&&cached.businessId===businessId){businessName=cached.businessName||'LAZIZ';products=cached.products||[]}
+const savedStaff=(()=>{try{return JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}catch(e){return null}})();
+if(savedStaff?.businessId){businessId=savedStaff.businessId;staffUsername=savedStaff.username||'';staffFullName=savedStaff.fullName||'';const cached=getCached();if(cached&&cached.businessId===businessId){businessName=cached.businessName||'LAZIZ';products=cached.products||[]}}
 $('#staff-password').addEventListener('keydown',e=>{if(e.key==='Enter')staffLogin()});
-$('#confirm-staff-password').addEventListener('keydown',e=>{if(e.key==='Enter')ownerSetup()});
+$('#connection-code').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
+$('#register-code').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
+$('#register-confirm').addEventListener('keydown',e=>{if(e.key==='Enter')registerStaff()});
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
