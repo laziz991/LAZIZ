@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "laziz-offline-v4";
+const CACHE_NAME = "laziz-offline-v5";
 
 const SUPABASE_CDN =
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -15,10 +15,8 @@ self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
 
-    // Cache the app's local files.
     await cache.addAll(APP_FILES);
 
-    // Cache the Supabase library separately.
     const response = await fetch(SUPABASE_CDN, {
       mode: "cors",
       cache: "reload"
@@ -55,7 +53,6 @@ self.addEventListener("fetch", event => {
 
   if (request.method !== "GET") return;
 
-  // Supabase library.
   if (url.href === SUPABASE_CDN) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -82,7 +79,6 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // LAZIZ app files.
   if (url.origin !== self.location.origin) return;
 
   event.respondWith((async () => {
