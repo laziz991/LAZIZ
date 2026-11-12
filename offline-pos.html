@@ -7,123 +7,80 @@
 <link rel="manifest" href="./offline-manifest.json">
 <title>LAZIZ Offline Sales Counter</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
-.head{background:#10251e;color:#fff;padding:17px 4vw;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.logo{font-size:21px;font-weight:900;letter-spacing:2px}.logo span{color:#e5bd69}
-.status{font-size:12px;color:#cfe4d5}.head-menu{position:relative}.head-menu summary{list-style:none;cursor:pointer;font-size:26px;line-height:1;padding:4px 10px;border-radius:8px}.head-menu summary::-webkit-details-marker{display:none}.head-menu[open] .menu-items{display:block}.menu-items{display:none;position:absolute;right:0;top:38px;z-index:20;min-width:180px;background:#fff;color:#18251f;border:1px solid #dce5df;border-radius:10px;box-shadow:0 8px 24px #0002;padding:7px}.menu-items a,.menu-items button{display:block;width:100%;text-align:left;padding:11px;border:0;border-radius:7px;background:#fff;color:#18251f;text-decoration:none;font:inherit;cursor:pointer}.menu-items a:hover,.menu-items button:hover{background:#f0f6f1}
-.wrap{max-width:1200px;margin:24px auto;padding:0 18px}
-.intro{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
-.intro h1{margin:0 0 5px;font-size:25px}
-.muted{color:#718078}
-.layout{display:grid;grid-template-columns:1fr 360px;gap:17px}
-.panel{background:white;border:1px solid #e1e9e3;border-radius:14px;padding:18px;box-shadow:0 8px 25px #142b1b0a}
-.search{width:100%;padding:15px;border:1px solid #dbe5de;border-radius:10px;font-size:17px;outline:none}
-.search:focus{border-color:#559b70;box-shadow:0 0 0 3px #e7f4eb}
-.suggest{position:relative}.suggestions{position:absolute;top:5px;left:0;right:0;background:white;z-index:3;border:1px solid #dbe5de;border-radius:10px;box-shadow:0 10px 25px #0002;max-height:270px;overflow:auto}
-.suggestion{display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid #edf1ee;cursor:pointer}
-.suggestion:hover{background:#f1f7f2}
-.line{display:grid;grid-template-columns:1.5fr .7fr .9fr .9fr 36px;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1ee}
-.line input{width:100%;padding:9px;border:1px solid #dce5df;border-radius:8px}
-.line-head{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#89958e;font-weight:800}
-.remove{border:0;background:#fff0f0;color:#ad4545;border-radius:8px;padding:8px}
-.totalrow{display:flex;justify-content:space-between;align-items:center;margin:20px 0 8px}
-.total{font-size:30px;font-weight:900}
-.btn{border:0;border-radius:9px;padding:13px 16px;background:#176b4b;color:white;font-weight:800;cursor:pointer}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.secondary{background:#edf3ef;color:#244236}.btn.paid{width:100%;font-size:17px;padding:17px}
-.btn.small{padding:9px 12px;font-size:12px}
-.field{margin:13px 0}.field label{display:block;font-size:11px;font-weight:800;color:#68776e;margin-bottom:6px}
-.field input,.field select{width:100%;padding:11px;border:1px solid #dce5df;border-radius:9px}
-.receipt{background:#f0f7f1;border:1px solid #dcebdd;padding:12px;border-radius:9px;font-size:12px;line-height:1.6}
-.empty{padding:35px;text-align:center;color:#829087}
-.notice{background:#fff6e5;color:#79581d;padding:12px;border-radius:9px;font-size:12px;line-height:1.6;margin-top:12px}
-.error{background:#fff0f0;color:#9b3030}.ok{background:#edf8ef;color:#245c36}
-.login-wrap{max-width:430px;margin:55px auto;padding:0 18px}
-.login-card{background:white;border:1px solid #e1e9e3;border-radius:14px;padding:25px;box-shadow:0 8px 25px #142b1b0a}
-.login-card h2{margin-top:0}.login-card input{width:100%;padding:14px;border:1px solid #dce5df;border-radius:9px;font-size:16px}
-.login-card label{display:block;margin:15px 0 6px;font-weight:700}
-.login-card .btn{width:100%;margin-top:15px}
-.hidden{display:none!important}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.line{grid-template-columns:1.2fr .6fr .8fr .8fr 32px}.wrap{margin:15px auto}.intro{align-items:flex-start;flex-direction:column}}
-@media(max-width:500px){.line{grid-template-columns:1fr .55fr .75fr 32px}.line .line-total,.line-head .line-total{display:none}.total{font-size:25px}}
-@media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{display:block!important;position:absolute;left:0;top:0;width:100%;padding:15px;color:#000;background:#fff}}
+*{box-sizing:border-box}body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
+.head{background:#10251e;color:#fff;padding:16px 4vw;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.logo{font-size:21px;font-weight:900;letter-spacing:2px}.logo span{color:#e5bd69}.status{font-size:12px;color:#cfe4d5}.head-actions{display:flex;align-items:center;gap:12px;position:relative}.menu-button{width:38px;height:38px;border:1px solid #496358;border-radius:9px;background:#1c392e;color:#fff;font-size:24px;line-height:1;cursor:pointer}.account-menu{position:absolute;right:0;top:46px;z-index:20;min-width:190px;padding:7px;background:#fff;border:1px solid #dce5df;border-radius:10px;box-shadow:0 10px 30px #0003}.account-menu a{display:block;padding:12px;color:#1c392e;text-decoration:none;font-weight:700;border-radius:7px}.account-menu a:hover{background:#edf3ef}
+.wrap{max-width:1250px;margin:22px auto;padding:0 16px}.intro{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+h1{font-size:25px;margin:0 0 4px}.muted{color:#718078}.layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:16px}
+.panel,.login-card{background:#fff;border:1px solid #e1e9e3;border-radius:14px;padding:17px;box-shadow:0 8px 25px #142b1b0a}
+.search{width:100%;padding:14px;border:1px solid #dbe5de;border-radius:10px;font-size:16px}
+.suggest{position:relative}.suggestions{position:absolute;top:4px;left:0;right:0;background:white;z-index:5;border:1px solid #dbe5de;border-radius:10px;box-shadow:0 10px 25px #0002;max-height:260px;overflow:auto}
+.suggestion{display:flex;justify-content:space-between;gap:10px;padding:12px;border-bottom:1px solid #edf1ee;cursor:pointer}.suggestion:hover{background:#f1f7f2}
+.line{display:grid;grid-template-columns:minmax(110px,1.4fr) 75px 115px 100px 34px;gap:7px;align-items:center;padding:11px 0;border-bottom:1px solid #edf1ee}
+.line input{width:100%;padding:9px;border:1px solid #dce5df;border-radius:8px}.line-head{font-size:10px;text-transform:uppercase;color:#89958e;font-weight:800}
+.remove{border:0;background:#fff0f0;color:#ad4545;border-radius:8px;padding:9px}.field{margin:12px 0}.field label{display:block;font-size:11px;font-weight:800;color:#68776e;margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px;border:1px solid #dce5df;border-radius:9px;font:inherit}
+.btn{border:0;border-radius:9px;padding:12px 15px;background:#176b4b;color:white;font-weight:800;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.secondary{background:#edf3ef;color:#244236}.btn.small{padding:9px 12px;font-size:12px}.btn.full{width:100%}
+.totalrow{display:flex;justify-content:space-between;align-items:center;margin:13px 0}.total{font-size:27px;font-weight:900}
+.notice,.message{padding:11px;border-radius:9px;font-size:12px;line-height:1.5;margin-top:10px;background:#fff6e5;color:#79581d}
+.message.ok{background:#edf8ef;color:#245c36}.message.error{background:#fff0f0;color:#9b3030}
+.empty{padding:30px;text-align:center;color:#829087}.hidden{display:none!important}
+.login-wrap{max-width:440px;margin:45px auto;padding:0 16px}.login-card{padding:24px}.login-card h2{margin-top:0}
+.login-card input{width:100%;padding:13px;border:1px solid #dce5df;border-radius:9px;font-size:16px}.login-card label{display:block;margin:14px 0 6px;font-weight:700}
+.login-card .btn{width:100%;margin-top:14px}
+.history-tools{display:flex;gap:8px;margin:12px 0}.history-tools input{flex:1;min-width:0;padding:10px;border:1px solid #dce5df;border-radius:8px}
+.history-item{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1ee}
+.history-item button{white-space:nowrap}.pill{font-size:10px;padding:4px 7px;border-radius:20px;background:#edf3ef;color:#355744}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.intro{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.wrap{margin:13px auto}.line{grid-template-columns:minmax(95px,1fr) 55px 88px 30px}.line .line-total,.line-head .line-total{display:none}.total{font-size:24px}.line input{padding:8px;font-size:13px}}
+@media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{display:block!important;position:absolute;left:0;top:0;width:100%;padding:12px;background:#fff;color:#000}}
 </style>
 </head>
 <body>
 <header class="head">
   <div class="logo">LAZIZ<span>.</span> <small style="font-size:11px;letter-spacing:0;color:#d4e0d8">SALES COUNTER</small></div>
-  <div style="display:flex;align-items:center;gap:12px"><div class="status" id="connection">Starting offline app…</div><details class="head-menu"><summary aria-label="Menu">⋮</summary><div class="menu-items"><a href="https://laziz991.github.io/LAZIZ/">Main Account</a><button type="button" onclick="lockCounter();document.querySelector('.head-menu').open=false">Lock counter</button></div></details></div>
+  <div class="head-actions">
+    <div class="status" id="connection">Starting…</div>
+    <button class="menu-button" id="account-menu-button" type="button" aria-label="Open menu" aria-expanded="false">⋮</button>
+    <nav class="account-menu hidden" id="account-menu"><a href="https://laziz991.github.io/LAZIZ/" target="_blank" rel="noopener">Main Account</a></nav>
+  </div>
 </header>
 
-<section id="staff-login" class="login-wrap">
-  <div class="login-card">
-    <h2>LAZIZ Staff Login</h2>
-    <p class="muted">Sign in with your own staff account and your business connection code.</p>
-    <label for="connection-code">Business connection code</label>
-    <input id="connection-code" type="text" autocomplete="off" placeholder="LZ-XXXX-XXXX-XXXX-XXXX">
-    <label for="staff-username">Your username</label>
-    <input id="staff-username" type="text" autocomplete="username" placeholder="Your staff username">
-    <label for="staff-password">Your password</label>
-    <input id="staff-password" type="password" autocomplete="current-password" placeholder="Your personal password">
-    <button id="staff-login-button" class="btn" onclick="staffLogin()">SIGN IN</button>
-    <div id="login-feedback" style="margin-top:12px"></div>
-    <p style="text-align:center;margin:17px 0 0">New salesgirl? <a href="#" onclick="showRegister();return false">Create your staff account</a></p>
-    <p class="muted" style="font-size:11px;margin-top:15px">Your first registration and first sign-in need internet. After signing in once, this device can also unlock your counter offline.</p>
-  </div>
-</section>
+<main id="sales-app" class="wrap hidden">
+ <div class="intro">
+  <div><h1>New customer sale</h1><div class="muted" id="business">Loading business…</div><div class="muted" id="staff-label"></div></div>
 
-<section id="staff-register" class="login-wrap hidden">
-  <div class="login-card">
-    <h2>Create your staff account</h2>
-    <p class="muted">Ask the business owner for the connection code. Choose your own username and password.</p>
-    <label for="register-code">Business connection code</label>
-    <input id="register-code" type="text" autocomplete="off" placeholder="Enter owner’s connection code">
-    <label for="register-name">Your full name</label>
-    <input id="register-name" type="text" autocomplete="name" placeholder="Your full name">
-    <label for="register-username">Choose a username</label>
-    <input id="register-username" type="text" autocomplete="username" placeholder="3–24 letters or numbers">
-    <label for="register-password">Create your password</label>
-    <input id="register-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="At least 8 characters">
-    <label for="register-confirm">Confirm your password</label>
-    <input id="register-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Enter it again">
-    <button id="register-button" class="btn" onclick="registerStaff()">CREATE STAFF ACCOUNT</button>
-    <div id="register-feedback" style="margin-top:12px"></div>
-    <p style="text-align:center;margin:17px 0 0"><a href="#" onclick="showLogin();return false">Back to staff login</a></p>
-  </div>
-</section>
-
-<main class="wrap hidden" id="sales-app">
-<div class="intro">
-  <div><h1>New customer sale</h1><div class="muted" id="business">Preparing your LAZIZ business…</div></div>
-  <button class="btn secondary small" onclick="lockCounter()">Lock counter</button>
-</div>
-<div class="layout">
-<section class="panel">
-  <div class="suggest">
-    <input id="search" class="search" autocomplete="off" placeholder="Type product name or SKU…" disabled>
-    <div id="suggestions" class="suggestions" hidden></div>
-  </div>
-  <div style="margin:18px 0 5px" class="line line-head"><span>Item</span><span>Qty</span><span>Unit price</span><span class="line-total">Line total</span><span></span></div>
-  <div id="lines"><div class="empty">Loading your products…</div></div>
-  <div class="notice" id="empty-note">Your actual products and prices will load from your LAZIZ business.</div>
-</section>
-<aside class="panel">
-  <h3 style="margin:0 0 5px">Sale summary</h3>
-  <div class="muted" style="font-size:12px">Review the items before payment.</div>
-  <div class="field"><label>Customer name (optional)</label><input id="customer" placeholder="Walk-in customer"></div>
-  <div class="field"><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>POS / Card</option><option>Credit</option></select></div>
-  <div class="field"><label>Member / customer discount (₦)</label><input id="discount" type="number" min="0" step="0.01" value="0" oninput="renderTotals()" placeholder="Enter discount amount"></div>
-  <div class="totalrow"><span class="muted">Subtotal</span><b id="subtotal">₦0</b></div>
-  <div class="totalrow"><span class="muted">Discount</span><b id="discount-view">−₦0</b></div>
-  <div class="totalrow"><span class="muted">Balance to pay</span><span class="total" id="grand">₦0</span></div>
-  <button id="paid" class="btn paid" onclick="completeSale()" disabled>COMPLETE SALE</button>
-  <button id="print-button" class="btn secondary" style="width:100%;margin-top:9px" onclick="printReceipt()" disabled>Print last receipt</button>
-  <div id="feedback" style="margin-top:12px"></div>
-  <div class="notice" id="queue-note">Offline sales are saved on this device and submitted when internet returns.</div>
-  <button id="sync" class="btn secondary" style="width:100%;margin-top:10px" onclick="syncQueue()">Sync pending offline sales</button>
-</aside>
-</div>
+ </div>
+ <div class="layout">
+  <section class="panel">
+   <div class="suggest"><input id="search" class="search" autocomplete="off" placeholder="Search product name or SKU…" disabled><div id="suggestions" class="suggestions" hidden></div></div>
+   <div class="line line-head"><span>Item</span><span>Qty</span><span>Unit price (₦)</span><span class="line-total">Line total</span><span></span></div>
+   <div id="lines"><div class="empty">Loading approved products…</div></div>
+   <div class="notice" id="catalog-note">Only the owner can change the permanent product catalogue. Your price edits apply to this sale only.</div>
+  </section>
+  <aside class="panel">
+   <h3 style="margin:0 0 5px">Sale summary</h3><div class="muted" style="font-size:12px">Customer details are optional.</div>
+   <div class="field"><label>Customer name (optional)</label><input id="customer" placeholder="Walk-in customer"></div>
+   <div class="field"><label>Customer phone (optional)</label><input id="customer-phone" type="tel" placeholder="Phone number"></div>
+   <div class="field"><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>POS / Card</option><option>Credit</option></select></div>
+   <div class="field"><label>Bill discount (₦)</label><input id="discount" type="number" min="0" step="0.01" value="0"></div>
+   <div class="totalrow"><span class="muted">Subtotal</span><b id="subtotal">₦0</b></div>
+   <div class="totalrow"><span class="muted">Discount</span><b id="discount-view">−₦0</b></div>
+   <div class="totalrow"><span class="muted">Total bill</span><b id="grand">₦0</b></div>
+   <div class="field"><label>Amount paid (₦)</label><input id="amount-paid" type="number" min="0" step="0.01" value="0"></div>
+   <div class="totalrow"><span class="muted">Outstanding balance</span><span class="total" id="balance">₦0</span></div>
+   <button id="paid" class="btn full" onclick="completeSale()" disabled>COMPLETE SALE</button>
+   <button class="btn secondary full" style="margin-top:8px" onclick="showHistory()">SALES HISTORY</button>
+   <div id="feedback"></div><div class="notice" id="queue-note">Offline sales are saved on this device and sync when internet returns.</div>
+   <button id="sync" class="btn secondary full" style="margin-top:9px" onclick="syncQueue()">SYNC PENDING SALES</button>
+  </aside>
+ </div>
+ <section id="history-panel" class="panel hidden" style="margin-top:16px">
+  <div class="intro"><div><h2 style="margin:0">My sales history</h2><div class="muted">Your receipts only</div></div><button class="btn secondary small" onclick="hideHistory()">Close</button></div>
+  <div class="history-tools"><input id="history-search" placeholder="Search receipt or customer…" oninput="renderHistory()"><button class="btn secondary small" onclick="loadHistory()">Refresh</button></div>
+  <div id="history-list"><div class="empty">Loading receipts…</div></div>
+ </section>
 </main>
 <div id="print-area" class="hidden"></div>
 
@@ -131,337 +88,83 @@ body{margin:0;background:#f3f6f3;color:#18251f;font:14px system-ui,Arial}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script>
 'use strict';
-
-/* LAZIZ BUSINESS SETTINGS */
-// Business ID is securely returned by cashier-auth after the connection code is verified.
-
-/* KEEP THESE EXISTING V2 STORAGE NAMES */
-const CACHE='laziz_pos_catalog_v2';
-const QUEUE='laziz_pos_pending_v2';
-const LOCAL_LOGIN='laziz_cashier_local_login_v1';
-const AUTH_STORAGE='laziz-cashier-auth-v1';
-const LOCAL_ITERATIONS=210000;
-
-const $=s=>document.querySelector(s);
-const fmt=n=>'₦'+Number(n||0).toLocaleString('en-NG',{maximumFractionDigits:2});
+const CACHE='laziz_pos_catalog_v2',QUEUE='laziz_pos_pending_v2',LOCAL_LOGIN='laziz_cashier_local_login_v1',LOCAL_HISTORY='laziz_cashier_history_v2';
+const $=s=>document.querySelector(s),fmt=n=>'₦'+Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-let sb=null,businessId=null,businessName='',products=[],cart=[],busy=false,staffUsername='',staffFullName='';
-let pending=readQueue(),lastReceipt=null;
-
-function readQueue(){try{return JSON.parse(localStorage.getItem(QUEUE)||'[]')}catch(e){return []}}
-function saveQueue(){localStorage.setItem(QUEUE,JSON.stringify(pending));updateQueueNote()}
-function getCached(){try{return JSON.parse(localStorage.getItem(CACHE)||'null')}catch(e){return null}}
-function cacheCatalog(){localStorage.setItem(CACHE,JSON.stringify({businessId,businessName,products,updatedAt:new Date().toISOString()}))}
-function say(message,kind=''){$('#feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
-function loginMessage(message,kind='error'){$('#login-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
-function registerMessage(message,kind='error'){$('#register-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
-function updateStatus(){$('#connection').textContent=(navigator.onLine?'Online':'Offline')+' · LAZIZ staff counter'}
-function updateQueueNote(){$('#queue-note').textContent=pending.length?pending.length+' offline sale(s) waiting to sync. Do not clear this browser data.':'No pending offline sales.'}
-
-function showSalesApp(){
-  $('#staff-login').classList.add('hidden');
-  $('#staff-register').classList.add('hidden');
-  $('#sales-app').classList.remove('hidden');
-}
-function showLogin(){
-  $('#sales-app').classList.add('hidden');
-  $('#staff-register').classList.add('hidden');
-  $('#staff-login').classList.remove('hidden');
-  $('#staff-password').value='';
-}
-function showRegister(){
-  $('#staff-login').classList.add('hidden');
-  $('#sales-app').classList.add('hidden');
-  $('#staff-register').classList.remove('hidden');
-  $('#register-feedback').innerHTML='';
-}
-
-function initSupabase(){
-  const cfg=window.LAZIZ_SUPABASE_CONFIG;
-  if(!cfg?.url||!cfg?.publishableKey||!window.supabase?.createClient){
-    throw new Error('Supabase configuration or Supabase library is missing.');
-  }
-  if(!sb){
-    sb=window.supabase.createClient(cfg.url,cfg.publishableKey,{
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:AUTH_STORAGE}
-    });
-  }
-}
-
-/* Extract useful messages returned by Supabase Edge Functions */
-async function functionErrorMessage(error,data){
-  if(data?.error)return data.error;
-  try{
-    const response=error?.context;
-    if(response){
-      const copy=typeof response.clone==='function'?response.clone():response;
-      const body=await copy.json();
-      if(body?.error)return body.error;
-      if(body?.message)return body.message;
-    }
-  }catch(e){}
-  return error?.message||'The server request failed.';
-}
-
-/* INDIVIDUAL STAFF REGISTRATION */
-async function registerStaff(){
-  if(!navigator.onLine){registerMessage('Connect to the internet to create your staff account.');return}
-  const connectionCode=$('#register-code').value.trim();
-  const fullName=$('#register-name').value.trim();
-  const username=$('#register-username').value.trim().toLowerCase();
-  const password=$('#register-password').value;
-  const confirmation=$('#register-confirm').value;
-  if(!connectionCode||!fullName||!username||!password||!confirmation){registerMessage('Complete all fields.');return}
-  if(password.length<8||password.length>128){registerMessage('Your password must contain 8 to 128 characters.');return}
-  if(password!==confirmation){registerMessage('The passwords do not match.');return}
-  const button=$('#register-button');button.disabled=true;button.textContent='CREATING ACCOUNT…';
-  try{
-    initSupabase();
-    const {data,error}=await sb.functions.invoke('cashier-auth',{body:{action:'register',connection_code:connectionCode,full_name:fullName,username,password}});
-    if(error)throw new Error(await functionErrorMessage(error,data));
-    if(!data?.success||!data.session?.access_token||!data.session?.refresh_token)throw new Error(data?.error||'The server did not complete staff registration.');
-    businessId=data.business_id;businessName=data.business_name||'LAZIZ';staffUsername=data.username;staffFullName=data.full_name||fullName;
-    const {error:setError}=await sb.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
-    if(setError)throw setError;
-    await verifyStaffMembership();
-    await refreshProducts();
-    await saveLocalPassword(password,staffUsername,staffFullName);
-    $('#register-password').value='';$('#register-confirm').value='';
-    showSalesApp();say('Your personal staff account is ready. Welcome to '+businessName+'.','ok');
-    await syncQueue();
-  }catch(e){console.error(e);registerMessage(e.message||'Staff registration failed. Please try again.');try{if(sb)await sb.auth.signOut()}catch(ignore){}}
-  finally{button.disabled=false;button.textContent='CREATE STAFF ACCOUNT'}
-}
-
-/* LOCAL DEVICE PASSWORD VERIFICATION */
-function bytesToBase64(bytes){let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary)}
-function base64ToBytes(value){return Uint8Array.from(atob(value),c=>c.charCodeAt(0))}
-async function deriveLocalHash(password,salt){
-  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
-  return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:LOCAL_ITERATIONS,hash:'SHA-256'},key,256));
-}
-async function saveLocalPassword(password,username,fullName){
-  const salt=crypto.getRandomValues(new Uint8Array(16));
-  const hash=await deriveLocalHash(password,salt);
-  localStorage.setItem(LOCAL_LOGIN,JSON.stringify({businessId,username,fullName,iterations:LOCAL_ITERATIONS,salt:bytesToBase64(salt),hash:bytesToBase64(hash)}));
-}
-async function verifyLocalPassword(password,username){
-  let saved;
-  try{saved=JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}catch(e){return false}
-  if(!saved||saved.businessId!==businessId||saved.username!==username)return false;
-  try{
-    const salt=base64ToBytes(saved.salt),expected=base64ToBytes(saved.hash);
-    const actual=await deriveLocalHash(password,salt);
-    if(actual.length!==expected.length)return false;
-    let difference=0;for(let i=0;i<actual.length;i++)difference|=actual[i]^expected[i];
-    return difference===0;
-  }catch(e){return false}
-}
-
-async function acceptStaffSession(data,password){
-  if(!data?.success||!data.session?.access_token||!data.session?.refresh_token)throw new Error(data?.error||'The staff login response was incomplete.');
-  businessId=data.business_id;businessName=data.business_name||'LAZIZ';staffUsername=data.username;staffFullName=data.full_name||'';
-  const {error:setError}=await sb.auth.setSession({access_token:data.session.access_token,refresh_token:data.session.refresh_token});
-  if(setError)throw setError;
-  await verifyStaffMembership();
-  await refreshProducts();
-  await saveLocalPassword(password,staffUsername,staffFullName);
-}
-async function onlineStaffLogin(connectionCode,username,password){
-  initSupabase();
-  const {data,error}=await sb.functions.invoke('cashier-auth',{body:{action:'login',connection_code:connectionCode,username,password}});
-  if(error)throw new Error(await functionErrorMessage(error,data));
-  await acceptStaffSession(data,password);
-}
-async function verifyStaffMembership(){
-  const {data:{user},error:userError}=await sb.auth.getUser();
-  if(userError||!user)throw new Error('The staff session could not be verified.');
-  const {data:membership,error}=await sb.from('business_members').select('business_id,role').eq('business_id',businessId).eq('user_id',user.id).maybeSingle();
-  if(error)throw error;
-  if(!membership||membership.role!=='cashier'){
-    await sb.auth.signOut();throw new Error('This account is not authorised as a cashier for this business.');
-  }
-}
-async function offlineStaffLogin(password,username){
-  let saved;try{saved=JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}catch(e){}
-  if(!saved||!saved.businessId||saved.username!==username)throw new Error('This staff account has not signed in online on this device yet. Connect to the internet for the first sign-in.');
-  businessId=saved.businessId;staffUsername=saved.username;staffFullName=saved.fullName||'';
-  const cached=getCached();
-  if(!cached||cached.businessId!==businessId||!cached.products)throw new Error('The saved LAZIZ catalogue is missing. Connect to the internet and sign in again.');
-  if(!(await verifyLocalPassword(password,username)))throw new Error('Incorrect offline username or password.');
-  businessName=cached.businessName||'LAZIZ';products=cached.products||[];
-  renderCatalog();showSalesApp();say('Offline access granted. Sales will be saved on this device.','ok');updateStatus();
-}
-async function staffLogin(){
-  const connectionCode=$('#connection-code').value.trim();
-  const username=$('#staff-username').value.trim().toLowerCase();
-  const password=$('#staff-password').value,button=$('#staff-login-button');
-  if(!username||!password){loginMessage('Enter your username and password.');return}
-  button.disabled=true;button.textContent='SIGNING IN…';$('#login-feedback').innerHTML='';
-  try{
-    if(navigator.onLine){
-      if(!connectionCode)throw new Error('Enter your business connection code to sign in online.');
-      await onlineStaffLogin(connectionCode,username,password);
-      showSalesApp();say('Staff login successful. LAZIZ catalogue is ready.','ok');await syncQueue();
-    }else{
-      await offlineStaffLogin(password,username);
-    }
-  }catch(e){console.error(e);loginMessage(e.message||'Staff login could not be completed.');try{if(sb)await sb.auth.signOut()}catch(ignore){}}
-  finally{button.disabled=false;button.textContent='SIGN IN';updateStatus()}
-}
-function lockCounter(){cart=[];render();showLogin();loginMessage('Counter locked. Enter the staff password to continue.','ok')}
-
-/* PRODUCT CATALOGUE */
-async function refreshProducts(){
-  const {data,error}=await sb.from('products').select('id,name,sku,category,unit,price,quantity,reorder_level,active').eq('business_id',businessId).eq('active',true).order('name');
-  if(error)throw error;
-  products=(data||[]).map(p=>({...p,price:Number(p.price),quantity:Number(p.quantity),unit:p.unit||'unit'}));
-  const {data:b,error:bErr}=await sb.from('businesses').select('name').eq('id',businessId).single();
-  if(bErr)throw bErr;
-  businessName=b.name;cacheCatalog();renderCatalog();updateStatus();
-}
-function renderCatalog(){
-  $('#business').textContent=businessName||'Your LAZIZ business';
-  $('#empty-note').textContent=products.length?'Search your approved LAZIZ product catalogue by name or SKU.':'No active products found. The owner must add products first.';
-  $('#search').disabled=!products.length;
-  $('#lines').innerHTML='<div class="empty">'+(products.length?'Start typing a product name or SKU.':'Your catalogue is empty.')+'</div>';
-}
-function findMatches(q){
-  const term=q.trim().toLowerCase();
-  return products.filter(p=>(p.name+' '+(p.sku||'')+' '+(p.category||'')).toLowerCase().includes(term));
-}
-$('#search').addEventListener('input',e=>{
-  const q=e.target.value.trim(),box=$('#suggestions');
-  if(!q){box.hidden=true;return}
-  const list=findMatches(q).slice(0,15);
-  box.innerHTML=list.map(p=>`<div class="suggestion" data-id="${esc(p.id)}"><span><b>${esc(p.name)}</b><br><small>${esc(p.sku||p.category||'')}</small></span><span style="text-align:right"><b>${fmt(p.price)}</b><br><small>per ${esc(p.unit)} · ${p.quantity} available</small></span></div>`).join('')||'<div class="suggestion">No matching product found.</div>';
-  box.hidden=false;
-});
-$('#suggestions').addEventListener('click',e=>{const row=e.target.closest('.suggestion[data-id]');if(row)addItem(row.dataset.id)});
-document.addEventListener('click',e=>{if(!e.target.closest('.suggest'))$('#suggestions').hidden=true});
-function addItem(id){
-  const p=products.find(x=>x.id===id);if(!p)return;
-  const line=cart.find(x=>x.id===id);if(line)line.qty+=1;else cart.push({id,qty:1});
-  $('#search').value='';$('#suggestions').hidden=true;render();
-}
-function subtotal(){return cart.reduce((sum,l)=>{const p=products.find(x=>x.id===l.id);return sum+(p?p.price*l.qty:0)},0)}
-function renderTotals(){
-  const sub=subtotal(),raw=Number($('#discount').value||0),disc=Math.max(0,Math.min(raw,sub));
-  $('#subtotal').textContent=fmt(sub);$('#discount-view').textContent='−'+fmt(disc);$('#grand').textContent=fmt(sub-disc);
-  $('#paid').disabled=busy||!cart.length||sub<=0||!Number.isFinite(raw)||raw<0||raw>sub;
-}
-function render(){
-  if(!cart.length){$('#lines').innerHTML='<div class="empty">No items added yet.</div>';renderTotals();return}
-  $('#lines').innerHTML=cart.map(l=>{
-    const p=products.find(x=>x.id===l.id);if(!p)return '';
-    return `<div class="line"><span><b>${esc(p.name)}</b><br><small class="muted">per ${esc(p.unit)}</small></span><span><input type="number" min="0.001" step="0.001" value="${l.qty}" data-qty="${esc(l.id)}"></span><span>${fmt(p.price)}</span><span class="line-total"><b>${fmt(p.price*l.qty)}</b></span><button class="remove" data-remove="${esc(l.id)}">×</button></div>`;
-  }).join('');
-  renderTotals();
-}
-$('#lines').addEventListener('change',e=>{
-  const id=e.target.dataset.qty;if(!id)return;
-  const n=Number(e.target.value);
-  if(!Number.isFinite(n)||n<=0){say('Enter a quantity greater than zero.','error');return render()}
-  const l=cart.find(x=>x.id===id);if(l)l.qty=n;render();
-});
+let sb=null,businessId=null,businessName='',products=[],cart=[],busy=false,staffUsername='',staffFullName='',authUserId=null,lastReceipt=null,pending=readJSON(QUEUE,[]),history=readJSON(LOCAL_HISTORY,[]);
+function readJSON(k,d){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(e){return d}}
+function writeJSON(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function saveQueue(){writeJSON(QUEUE,pending);updateQueueNote()}
+function saveHistory(){writeJSON(LOCAL_HISTORY,history)}
+function say(m,k=''){ $('#feedback').innerHTML='<div class="message '+k+'">'+esc(m)+'</div>'}
+function updateStatus(){$('#connection').textContent=(navigator.onLine?'Online':'Offline')+' · '+(pending.length?pending.length+' pending':'No pending sales')}
+function updateQueueNote(){$('#queue-note').textContent=pending.length?pending.length+' sale(s) waiting to sync. Do not clear browser data.':'No pending offline sales.'}
+function showSalesApp(){$('#sales-app').classList.remove('hidden');$('#staff-label').textContent=staffFullName||staffUsername||'Offline counter'}
+function initSupabase(){const c=window.LAZIZ_SUPABASE_CONFIG;if(!c?.url||!c?.publishableKey||!window.supabase?.createClient)throw new Error('Supabase configuration or library is missing.');if(!sb)sb=window.supabase.createClient(c.url,c.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}
+async function verifyStaffMembership(){const {data:{user},error}=await sb.auth.getUser();if(error||!user)throw new Error('Sign in to the Main Account to sync sales.');authUserId=user.id;const {data:m,error:e}=await sb.from('business_members').select('business_id,role').eq('business_id',businessId).eq('user_id',user.id).maybeSingle();if(e)throw e;if(!m||!['cashier','owner','manager'].includes(m.role))throw new Error('This account is not authorised for this LAZIZ business.')}
+async function refreshProducts(){const {data,error}=await sb.from('products').select('id,name,sku,category,unit,price,quantity,reorder_level,active').eq('business_id',businessId).eq('active',true).order('name');if(error)throw error;products=(data||[]).map(p=>({...p,price:Number(p.price),quantity:Number(p.quantity),unit:p.unit||'unit'}));const {data:b,error:be}=await sb.from('businesses').select('name').eq('id',businessId).single();if(be)throw be;businessName=b.name;writeJSON(CACHE,{businessId,businessName,products,updatedAt:new Date().toISOString()});renderCatalog();updateStatus()}
+function renderCatalog(){$('#business').textContent=businessName||'Your LAZIZ business';$('#search').disabled=!products.length;$('#catalog-note').textContent=products.length?'Catalogue loaded: '+products.length+' active products. Price changes below apply only to this sale.':'No active products. Ask the owner to add products.';if(!cart.length)$('#lines').innerHTML='<div class="empty">'+(products.length?'Search for a product to begin.':'No products available.')+'</div>'}
+function findMatches(q){const t=q.trim().toLowerCase();return products.filter(p=>(p.name+' '+(p.sku||'')+' '+(p.category||'')).toLowerCase().includes(t))}
+$('#search').addEventListener('input',e=>{const q=e.target.value.trim(),box=$('#suggestions');if(!q){box.hidden=true;return}const list=findMatches(q).slice(0,15);box.innerHTML=list.map(p=>`<div class="suggestion" data-id="${esc(p.id)}"><span><b>${esc(p.name)}</b><br><small>${esc(p.sku||p.category||'')}</small></span><span style="text-align:right"><b>${fmt(p.price)}</b><br><small>${Number(p.quantity).toLocaleString()} ${esc(p.unit)} available</small></span></div>`).join('')||'<div class="suggestion">No matching product.</div>';box.hidden=false});
+$('#suggestions').addEventListener('click',e=>{const r=e.target.closest('[data-id]');if(r)addItem(r.dataset.id)});document.addEventListener('click',e=>{if(!e.target.closest('.suggest'))$('#suggestions').hidden=true});
+function addItem(id){const p=products.find(x=>x.id===id);if(!p)return;const wasEmpty=!cart.length,oldTotal=totals().total,oldPaid=Number($('#amount-paid').value||0),l=cart.find(x=>x.id===id);if(l)l.qty+=1;else cart.push({id,qty:1,price:p.price});const newTotal=Math.max(0,subtotal()-Math.max(0,Math.min(Number($('#discount').value||0),subtotal())));if(wasEmpty||Math.abs(oldPaid-oldTotal)<0.005)$('#amount-paid').value=newTotal.toFixed(2);$('#search').value='';$('#suggestions').hidden=true;render()}
+function subtotal(){return cart.reduce((s,l)=>s+Number(l.price)*Number(l.qty),0)}
+function totals(){const sub=subtotal(),d=Number($('#discount').value||0),disc=Math.max(0,Math.min(d,sub)),total=sub-disc,paid=Number($('#amount-paid').value||0);return{sub,disc,total,paid,balance:total-paid}}
+function renderTotals(){const t=totals();$('#subtotal').textContent=fmt(t.sub);$('#discount-view').textContent='−'+fmt(t.disc);$('#grand').textContent=fmt(t.total);$('#balance').textContent=fmt(Math.max(0,t.balance));$('#paid').disabled=busy||!cart.length||t.sub<=0||!Number.isFinite(t.disc)||t.disc<0||t.disc>t.sub||!Number.isFinite(t.paid)||t.paid<0||t.paid>t.total||cart.some(l=>!Number.isFinite(l.price)||l.price<0||!Number.isFinite(l.qty)||l.qty<=0)}
+function render(){if(!cart.length){$('#lines').innerHTML='<div class="empty">No items added yet.</div>';renderTotals();return}$('#lines').innerHTML=cart.map(l=>{const p=products.find(x=>x.id===l.id);if(!p)return'';return `<div class="line"><span><b>${esc(p.name)}</b><br><small class="muted">Catalogue: ${fmt(p.price)}</small></span><span><input type="number" min="0.001" step="0.001" value="${l.qty}" data-qty="${esc(l.id)}" aria-label="Quantity"></span><span><input type="number" min="0" step="0.01" value="${l.price}" data-price="${esc(l.id)}" aria-label="Sale unit price"></span><span class="line-total"><b>${fmt(l.price*l.qty)}</b></span><button class="remove" data-remove="${esc(l.id)}">×</button></div>`}).join('');renderTotals()}
+$('#lines').addEventListener('change',e=>{const id=e.target.dataset.qty||e.target.dataset.price;if(!id)return;const l=cart.find(x=>x.id===id);if(!l)return;const n=Number(e.target.value);if(!Number.isFinite(n)||n<0||(e.target.dataset.qty&&n<=0)){say('Enter a valid quantity and selling price.','error');return render()}if(e.target.dataset.qty)l.qty=n;else l.price=n;render()});
 $('#lines').addEventListener('click',e=>{const id=e.target.dataset.remove;if(id){cart=cart.filter(x=>x.id!==id);render()}});
-
-function transactionId(){return crypto.randomUUID?crypto.randomUUID():'laziz-'+Date.now()+'-'+Math.random().toString(36).slice(2)}
-function newReceipt(){return 'LZ-'+Date.now().toString().slice(-8)}
-
-/* RECEIPT */
-function buildReceipt(sale){
-  const rows=sale.items.map(i=>`<tr><td>${esc(i.name)}</td><td style="text-align:right">${i.qty}</td><td style="text-align:right">${fmt(i.price*i.qty)}</td></tr>`).join('');
-  const sub=sale.items.reduce((n,i)=>n+i.price*i.qty,0);
-  return `<div style="max-width:360px;margin:auto;font:13px Arial"><h2 style="text-align:center;margin-bottom:3px">LAZIZ</h2><p style="text-align:center;margin-top:0">Sales receipt</p><hr><p>Receipt: ${esc(sale.receipt)}<br>Date: ${esc(new Date(sale.createdAt).toLocaleString())}<br>Customer: ${esc(sale.customer||'Walk-in customer')}<br>Payment: ${esc(sale.payment)}</p><hr><table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Item</th><th>Qty</th><th align="right">Amount</th></tr></thead><tbody>${rows}</tbody></table><hr><p>Subtotal: <b>${fmt(sub)}</b><br>Discount: <b>${fmt(sale.discount)}</b><br>Total paid: <b>${fmt(sub-sale.discount)}</b></p><hr><p style="text-align:center">Thank you for shopping with LAZIZ.</p></div>`;
-}
-function printReceipt(){
-  if(!lastReceipt){say('There is no receipt to print yet.','error');return}
-  const printWindow=window.open('','_blank');
-  if(!printWindow){say('Allow pop-ups in Chrome to print receipts.','error');return}
-  printWindow.document.write(`<!doctype html><html><head><title>LAZIZ Receipt</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${buildReceipt(lastReceipt)}<script>window.onload=()=>window.print();<\/script></body></html>`);
-  printWindow.document.close();
-}
-
-/* SALES AND SYNCHRONISATION */
-async function sendSale(sale){
-  const {data,error}=await sb.rpc('create_sale_atomic',{
-    p_business_id:sale.businessId,p_receipt_no:sale.receipt,p_customer_name:sale.customer,
-    p_payment_method:sale.payment,p_discount:sale.discount,p_client_transaction_id:sale.transactionId,
-    p_items:sale.items.map(i=>({product_id:i.id,quantity:i.qty})),p_source:sale.source
-  });
-  if(error)throw error;return data;
-}
+$('#discount').addEventListener('input',renderTotals);$('#amount-paid').addEventListener('input',renderTotals);$('#payment').addEventListener('change',()=>{if($('#payment').value==='Credit'&&Number($('#amount-paid').value||0)===0)renderTotals()});
+function id(){return crypto.randomUUID?crypto.randomUUID():'laziz-'+Date.now()+'-'+Math.random().toString(36).slice(2)}
+function receiptNo(){return 'LZ-'+Date.now().toString().slice(-9)}
+function rememberSale(s){const i=history.findIndex(x=>x.transactionId===s.transactionId);if(i>=0)history[i]={...history[i],...s};else history.unshift(s);history=history.slice(0,300);saveHistory()}
+function receiptHTML(s){const rows=(s.items||[]).map(i=>`<tr><td style="padding:5px 0">${esc(i.name)}</td><td align="right">${i.qty}</td><td align="right">${fmt(i.price)}</td><td align="right">${fmt(i.price*i.qty)}</td></tr>`).join('');const sub=(s.items||[]).reduce((a,i)=>a+i.qty*i.price,0),disc=Number(s.discount||0),total=sub-disc,paid=Number(s.amountPaid??total),balance=Math.max(0,total-paid);return `<div style="max-width:390px;margin:auto;font:13px Arial;color:#111"><h2 style="text-align:center;margin:0">LAZIZ</h2><p style="text-align:center;margin:3px 0 12px">${esc(s.businessName||businessName||'Sales receipt')}</p><hr><p>Receipt: <b>${esc(s.receipt||s.receipt_no||'')}</b><br>Date: ${esc(new Date(s.createdAt||s.created_at||Date.now()).toLocaleString())}<br>Cashier: ${esc(s.cashierName||staffFullName||staffUsername)}<br>Customer: ${esc(s.customer||s.customer_name||'Walk-in customer')}<br>Phone: ${esc(s.phone||s.customer_phone||'—')}<br>Payment: ${esc(s.payment||s.payment_method||'')}</p><hr><table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Item</th><th>Qty</th><th align="right">Unit</th><th align="right">Amount</th></tr></thead><tbody>${rows}</tbody></table><hr><p>Subtotal: <b>${fmt(sub)}</b><br>Discount: <b>${fmt(disc)}</b><br>Total: <b>${fmt(total)}</b><br>Amount paid: <b>${fmt(paid)}</b><br>Balance: <b>${fmt(balance)}</b></p><p style="text-align:center">Thank you for shopping with LAZIZ.</p></div>`}
+function printSale(s){$('#print-area').innerHTML=receiptHTML(s);window.print()}
+function printReceipt(){if(!lastReceipt)return say('No receipt to print yet.','error');printSale(lastReceipt)}
+async function sendSale(s){const {data,error}=await sb.rpc('create_sale_atomic',{p_business_id:s.businessId,p_receipt_no:s.receipt,p_customer_name:s.customer||null,p_payment_method:s.payment,p_discount:s.discount,p_client_transaction_id:s.transactionId,p_items:s.items.map(i=>({product_id:i.id,quantity:i.qty,unit_price:i.price})),p_source:s.source||'online',p_customer_phone:s.phone||null,p_amount_paid:s.amountPaid});if(error)throw error;return data}
 async function completeSale(){
-  if(busy||!cart.length)return;
-  if(!businessId){say('This device has not been connected to a LAZIZ business yet.','error');return}
-  const sub=subtotal(),discount=Number($('#discount').value||0);
-  if(!Number.isFinite(discount)||discount<0||discount>sub){say('Discount must be between ₦0 and the subtotal.','error');return}
-  for(const l of cart){
-    const p=products.find(x=>x.id===l.id);
-    if(!p||p.quantity<l.qty){say('Not enough saved stock for '+(p?.name||'an item')+'.','error');return}
-  }
-  const sale={
-    businessId,receipt:newReceipt(),transactionId:transactionId(),customer:$('#customer').value.trim(),
-    payment:$('#payment').value,discount,
-    items:cart.map(l=>{const p=products.find(x=>x.id===l.id);return {id:l.id,qty:l.qty,name:p.name,price:p.price}}),
-    source:navigator.onLine?'online':'offline_sync',createdAt:new Date().toISOString()
-  };
-  busy=true;renderTotals();$('#paid').textContent='PLEASE WAIT…';
-  try{
-    if(navigator.onLine&&sb){
-      await sendSale(sale);lastReceipt=sale;$('#print-button').disabled=false;
-      say('Sale saved securely. Stock has been updated in LAZIZ.','ok');await refreshProducts();
-    }else{
-      pending.push(sale);saveQueue();
-      sale.items.forEach(l=>{const p=products.find(x=>x.id===l.id);if(p)p.quantity-=l.qty});
-      cacheCatalog();lastReceipt=sale;$('#print-button').disabled=false;
-      say('Sale saved on this device. It will sync when internet returns.','ok');
-    }
-    cart=[];$('#customer').value='';$('#discount').value='0';render();
-  }catch(e){console.error(e);say(e.message||'Sale could not be confirmed. Check the connection before retrying.','error')}
-  finally{busy=false;$('#paid').textContent='COMPLETE SALE';renderTotals();updateStatus()}
+ if(busy||!cart.length)return;if(!businessId)return say('Connect this device to a LAZIZ business first.','error');
+ const t=totals();if(!Number.isFinite(t.disc)||t.disc<0||t.disc>t.sub)return say('Discount must be between zero and the subtotal.','error');if(!Number.isFinite(t.paid)||t.paid<0||t.paid>t.total)return say('Amount paid must be between zero and the total.','error');
+ for(const l of cart){const p=products.find(x=>x.id===l.id);if(!p||p.quantity<l.qty)return say('Not enough saved stock for '+(p?.name||'an item')+'.','error')}
+ const s={businessId,businessName,receipt:receiptNo(),transactionId:id(),customer:$('#customer').value.trim(),phone:$('#customer-phone').value.trim(),payment:$('#payment').value,discount:t.disc,amountPaid:t.paid,items:cart.map(l=>{const p=products.find(x=>x.id===l.id);return{id:l.id,qty:l.qty,name:p.name,price:Number(l.price)}}),source:navigator.onLine?'online':'offline_sync',createdAt:new Date().toISOString(),cashierName:staffFullName||staffUsername,syncStatus:'pending'};
+ busy=true;renderTotals();$('#paid').textContent='SAVING…';
+ try{
+   if(navigator.onLine&&sb){try{await sendSale(s);s.syncStatus='synced'}catch(e){console.warn('Sale queued for safe retry:',e);pending.push(s);saveQueue();s.syncStatus='pending';say('Sale saved on this device and queued for sync. Keep this browser data safe.','ok')}}
+   else{pending.push(s);saveQueue()}
+   s.items.forEach(i=>{const p=products.find(x=>x.id===i.id);if(p)p.quantity-=i.qty});
+   writeJSON(CACHE,{businessId,businessName,products,updatedAt:new Date().toISOString()});
+   rememberSale(s);lastReceipt=s;cart=[];$('#customer').value='';$('#customer-phone').value='';$('#discount').value='0';$('#amount-paid').value='0';render();
+   if(s.syncStatus==='synced')say('Sale saved securely. Stock has been updated.','ok');else say('Sale saved offline. It will sync when internet returns.','ok');
+   if(s.syncStatus==='synced')await refreshProducts().catch(e=>console.warn(e));
+ }catch(e){console.error(e);say(e.message||'Sale could not be saved.','error')}
+ finally{busy=false;$('#paid').textContent='COMPLETE SALE';renderTotals();updateStatus()}
 }
-async function syncQueue(){
-  if(!navigator.onLine||!sb||!businessId){updateQueueNote();return}
-  try{await verifyStaffMembership()}catch(e){console.error(e);say('Staff session needs to be renewed before syncing.','error');return}
-  let changed=false;
-  for(let i=0;i<pending.length;){
-    const sale=pending[i];
-    if(sale.businessId!==businessId){i++;continue}
-    try{sale.source='offline_sync';await sendSale(sale);pending.splice(i,1);changed=true}
-    catch(e){console.error('Offline sale sync failed:',e);say('A pending sale could not sync: '+(e.message||'Please try again.'),'error');break}
-  }
-  if(changed){saveQueue();await refreshProducts();say('Pending offline sales synced successfully.','ok')}
-  updateQueueNote();
+async function syncQueue(){if(!navigator.onLine||!sb||!businessId){updateQueueNote();return}try{await verifyStaffMembership()}catch(e){say('Open Main Account and sign in to sync pending sales.','error');return}let changed=false;for(let i=0;i<pending.length;){const s=pending[i];if(s.businessId!==businessId){i++;continue}try{await sendSale({...s,source:'offline_sync'});pending.splice(i,1);s.syncStatus='synced';rememberSale(s);changed=true}catch(e){console.error('Sync failed',e);say('A pending sale could not sync yet: '+(e.message||'Try again later.'),'error');break}}if(changed){saveQueue();await refreshProducts().catch(e=>console.warn(e));say('Pending sales synced successfully.','ok')}updateQueueNote();updateStatus()}
+function showHistory(){$('#history-panel').classList.remove('hidden');loadHistory()}
+function hideHistory(){$('#history-panel').classList.add('hidden')}
+async function loadHistory(){
+ if(navigator.onLine&&sb&&authUserId){try{const {data,error}=await sb.from('sales').select('id,receipt_no,customer_name,customer_phone,payment_method,subtotal,discount,total,amount_paid,balance_due,created_at,cashier_id,sale_items(product_id,product_name,quantity,unit,unit_price)').eq('business_id',businessId).eq('cashier_id',authUserId).order('created_at',{ascending:false}).limit(100);if(error)throw error;for(const r of data||[]){const s={businessId,receipt:r.receipt_no,receipt_no:r.receipt_no,transactionId:'server-'+r.id,customer:r.customer_name,phone:r.customer_phone,payment:r.payment_method,discount:Number(r.discount),amountPaid:Number(r.amount_paid),serverTotal:Number(r.total),createdAt:r.created_at,syncStatus:'synced',items:(r.sale_items||[]).map(i=>({id:i.product_id,qty:Number(i.quantity),name:i.product_name,price:Number(i.unit_price)}))};const ix=history.findIndex(x=>x.receipt===s.receipt);if(ix>=0)history[ix]=s;else history.push(s)}saveHistory()}catch(e){console.warn('History refresh failed',e)}}
+ renderHistory()
 }
-
-window.addEventListener('online',async()=>{
-  updateStatus();
-  if(!$('#sales-app').classList.contains('hidden')){
-    try{initSupabase();await syncQueue();await refreshProducts()}
-    catch(e){console.error(e);say('Connection returned, but LAZIZ could not refresh yet.','error')}
-  }
-});
+function renderHistory(){const q=($('#history-search')?.value||'').toLowerCase(),rows=history.filter(s=>[s.receipt,s.receipt_no,s.customer,s.phone].join(' ').toLowerCase().includes(q)).sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));$('#history-list').innerHTML=rows.length?rows.map((s,i)=>`<div class="history-item"><div><b>${esc(s.receipt||s.receipt_no||'Receipt')}</b><br><small>${esc(s.customer||'Walk-in customer')} · ${esc(new Date(s.createdAt||Date.now()).toLocaleString())}</small><br><b>${fmt((s.items||[]).reduce((a,x)=>a+x.qty*x.price,0)-Number(s.discount||0))}</b> <span class="pill">${s.syncStatus==='pending'?'Pending sync':'Saved'}</span></div><button class="btn secondary small" data-print-history="${i}">View / Print</button></div>`).join(''):'<div class="empty">No matching receipts on this device.</div>'}
+$('#history-list').addEventListener('click',e=>{const b=e.target.closest('[data-print-history]');if(!b)return;const q=($('#history-search').value||'').toLowerCase(),rows=history.filter(s=>[s.receipt,s.receipt_no,s.customer,s.phone].join(' ').toLowerCase().includes(q)).sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));const s=rows[Number(b.dataset.printHistory)];if(s){lastReceipt=s;printSale(s)}});
+window.addEventListener('online',async()=>{updateStatus();if(!$('#sales-app').classList.contains('hidden')){try{initSupabase();await syncQueue();await refreshProducts();if(!$('#history-panel').classList.contains('hidden'))await loadHistory()}catch(e){console.warn(e);say('Internet returned, but refresh is not ready yet.','error')}}});
 window.addEventListener('offline',updateStatus);
-
-updateQueueNote();updateStatus();
+// The counter opens immediately without a staff password. It uses the last catalogue
+// saved on this device; signing in to Main Account allows secure syncing when online.
+const saved=readJSON(LOCAL_LOGIN,null),cached=readJSON(CACHE,null);
+if(saved?.businessId){businessId=saved.businessId;staffUsername=saved.username||'';staffFullName=saved.fullName||''}
+if(!businessId&&cached?.businessId)businessId=cached.businessId;
+if(cached&&cached.businessId===businessId){businessName=cached.businessName||'LAZIZ';products=cached.products||[]}
+showSalesApp();renderCatalog();updateQueueNote();updateStatus();
 try{initSupabase()}catch(e){console.warn(e.message)}
-const savedStaff=(()=>{try{return JSON.parse(localStorage.getItem(LOCAL_LOGIN)||'null')}catch(e){return null}})();
-if(savedStaff?.businessId){businessId=savedStaff.businessId;staffUsername=savedStaff.username||'';staffFullName=savedStaff.fullName||'';const cached=getCached();if(cached&&cached.businessId===businessId){businessName=cached.businessName||'LAZIZ';products=cached.products||[]}}
-$('#staff-password').addEventListener('keydown',e=>{if(e.key==='Enter')staffLogin()});
-$('#connection-code').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
-$('#register-code').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
-$('#register-confirm').addEventListener('keydown',e=>{if(e.key==='Enter')registerStaff()});
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./offline-sw.js')
-      .then(()=>console.log('LAZIZ offline system registered'))
-      .catch(e=>console.error('Offline setup failed:',e));
-  });
-}
+async function refreshAfterMainLogin(){if(!navigator.onLine||!sb||!businessId)return;try{await verifyStaffMembership();await refreshProducts();if(pending.length)await syncQueue()}catch(e){console.info('Main account session not ready:',e.message)}}
+refreshAfterMainLogin();
+window.addEventListener('focus',refreshAfterMainLogin);
+const menuButton=$('#account-menu-button'),menu=$('#account-menu');
+menuButton.addEventListener('click',()=>{const opening=menu.classList.contains('hidden');menu.classList.toggle('hidden');menuButton.setAttribute('aria-expanded',String(opening))});
+document.addEventListener('click',e=>{if(!e.target.closest('.head-actions')){menu.classList.add('hidden');menuButton.setAttribute('aria-expanded','false')}});
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./offline-sw.js').then(()=>console.log('LAZIZ offline system registered')).catch(e=>console.error('Offline setup failed:',e)));
 </script>
 </body>
 </html>
