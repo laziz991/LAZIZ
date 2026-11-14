@@ -115,33 +115,31 @@ $('#year').textContent=new Date().getFullYear();
 let saved=localStorage.getItem(sessionKey);if(saved){let u=db.users.find(x=>x.id===saved);if(u){current=u;openApp()}}
 </script> 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+window.LAZIZ_CLOUD_ERROR = 'No error detected yet';
+
+window.addEventListener('error', function(e) {
+  window.LAZIZ_CLOUD_ERROR =
+    (e.message || 'Unknown JavaScript error') +
+    ' | File: ' + (e.filename || 'unknown') +
+    ' | Line: ' + (e.lineno || 'unknown');
+});
+</script>
+
 <script src="cloud-integration.js"></script>
 
 <script>
-window.addEventListener('load', function () {
-  const configOK = !!(
-    window.LAZIZ_SUPABASE_CONFIG &&
-    window.LAZIZ_SUPABASE_CONFIG.url &&
-    window.LAZIZ_SUPABASE_CONFIG.publishableKey
-  );
-
-  const libraryOK = !!(
-    window.supabase &&
-    window.supabase.createClient
-  );
-
-  const cloudLoginOK = typeof window.authForm === 'function' &&
-    window.authForm.toString().includes('Forgot password');
-
+window.addEventListener('load', function() {
   const report = document.createElement('div');
+
   report.style.cssText =
-    'position:fixed;bottom:10px;left:10px;right:10px;z-index:99999;background:#10251e;color:white;padding:15px;border-radius:10px;font-size:13px;line-height:2';
+    'position:fixed;bottom:10px;left:10px;right:10px;z-index:99999;background:#10251e;color:white;padding:15px;border-radius:10px;font-size:12px;line-height:2;overflow-wrap:anywhere';
 
   report.innerHTML =
-    '<b>LAZIZ CONNECTION TEST</b><br>' +
-    'Supabase configuration: ' + (configOK ? 'OK' : 'FAILED') + '<br>' +
-    'Supabase library: ' + (libraryOK ? 'OK' : 'FAILED') + '<br>' +
-    'Cloud login installed: ' + (cloudLoginOK ? 'OK' : 'FAILED');
+    '<b>LAZIZ CLOUD DIAGNOSTIC</b><br>' +
+    'Auth function: ' + typeof window.authForm + '<br>' +
+    'Cloud error: ' + window.LAZIZ_CLOUD_ERROR;
 
   document.body.appendChild(report);
 });
