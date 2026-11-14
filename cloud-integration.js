@@ -3,6 +3,7 @@
    Remaining modules are intentionally not enabled for live use until their cloud APIs are implemented. */
 (function(){
   const cfg=window.LAZIZ_SUPABASE_CONFIG;
+
   if(!cfg?.url || !cfg?.publishableKey || !window.supabase?.createClient){
     console.error('LAZIZ Supabase configuration or client library is missing.');
     return;
@@ -20,7 +21,9 @@
   window.lazizSupabase=sb;
 
   let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
+
   const uid=()=>crypto.randomUUID();
+
   const fail=e=>{
     console.error(e);
     toast(e?.message||'Something went wrong. Please try again.');
@@ -52,6 +55,7 @@
       $('#cloudforgot').onsubmit=async e=>{
         e.preventDefault();
         if(busy)return;
+
         busy=true;
         const button=e.target.querySelector('button');
         button.disabled=true;
@@ -60,8 +64,10 @@
         try{
           const f=new FormData(e.target);
           recoveryEmail=String(f.get('email')).trim().toLowerCase();
+
           const {error}=await sb.auth.resetPasswordForEmail(recoveryEmail);
           if(error)throw error;
+
           window.showRecoveryCode();
         }catch(err){
           fail(err);
@@ -71,6 +77,7 @@
           busy=false;
         }
       };
+
       return;
     }
 
@@ -131,14 +138,19 @@
     $('#cloudlogin')?.addEventListener('submit',async e=>{
       e.preventDefault();
       if(busy)return;
+
       busy=true;
+
       try{
         const f=new FormData(e.target);
+
         const {error}=await sb.auth.signInWithPassword({
           email:String(f.get('email')).trim().toLowerCase(),
           password:f.get('password')
         });
+
         if(error)throw error;
+
         await bootWorkspace();
       }catch(err){
         fail(err);
@@ -150,9 +162,12 @@
     $('#cloudregister')?.addEventListener('submit',async e=>{
       e.preventDefault();
       if(busy)return;
+
       busy=true;
+
       try{
         const f=new FormData(e.target);
+
         const {data,error}=await sb.auth.signUp({
           email:String(f.get('email')).trim().toLowerCase(),
           password:f.get('password'),
@@ -161,6 +176,7 @@
             emailRedirectTo:location.origin==='null'?undefined:location.origin
           }
         });
+
         if(error)throw error;
 
         if(data.session){
@@ -198,7 +214,9 @@
     $('#cloudverifyrecovery').onsubmit=async e=>{
       e.preventDefault();
       if(busy)return;
+
       busy=true;
+
       const button=e.target.querySelector('button');
       button.disabled=true;
       button.textContent='VERIFYING…';
@@ -206,12 +224,15 @@
       try{
         const f=new FormData(e.target);
         const token=String(f.get('token')).trim();
+
         const {error}=await sb.auth.verifyOtp({
           email:recoveryEmail,
           token,
           type:'recovery'
         });
+
         if(error)throw error;
+
         window.showNewPassword();
       }catch(err){
         fail(err);
@@ -249,10 +270,12 @@
 
       if(password.length<8)
         return toast('Your password must be at least 8 characters.');
+
       if(password!==confirmPassword)
         return toast('The passwords do not match.');
 
       busy=true;
+
       const button=e.target.querySelector('button');
       button.disabled=true;
       button.textContent='SAVING…';
@@ -286,6 +309,7 @@
   async function bootWorkspace(){
     const {data:{session},error:se}=await sb.auth.getSession();
     if(se)throw se;
+
     if(!session?.user){
       show('landing');
       return;
@@ -304,6 +328,7 @@
 
     if(!membership){
       show('auth');
+
       $('#authbox').innerHTML=`
         <h2>Create your business workspace</h2>
         <p class="muted">Your account is ready. Enter the real name and category of your business.</p>
@@ -333,15 +358,22 @@
       $('#workspaceform').onsubmit=async e=>{
         e.preventDefault();
         if(busy)return;
+
         busy=true;
+
         try{
           const f=new FormData(e.target);
+
           const {data,error}=await sb.rpc('create_business_workspace',{
             p_name:String(f.get('business')).trim(),
             p_industry:f.get('industry')
           });
+
           if(error)throw error;
+
           cloudBusinessId=data;
+          cloudRole='owner';
+
           await loadCloudData();
         }catch(err){
           fail(err);
@@ -349,11 +381,13 @@
           busy=false;
         }
       };
+
       return;
     }
 
     cloudBusinessId=membership.business_id;
     cloudRole=membership.role;
+
     await loadCloudData();
   }
 
@@ -416,6 +450,7 @@
         price:Number(i.unit_price),
         cost:Number(i.unit_cost)
       }));
+
       const cost=lines.reduce((a,l)=>a+l.qty*l.cost,0);
 
       return {
@@ -446,13 +481,19 @@
     }));
 
     const customers=(customersRes.data||[]).map(x=>({
-      id:x.id,name:x.name,phone:x.phone||'',
-      email:x.email||'',notes:x.notes||''
+      id:x.id,
+      name:x.name,
+      phone:x.phone||'',
+      email:x.email||'',
+      notes:x.notes||''
     }));
 
     const suppliers=(suppliersRes.data||[]).map(x=>({
-      id:x.id,name:x.name,phone:x.phone||'',
-      email:x.email||'',notes:x.notes||''
+      id:x.id,
+      name:x.name,
+      phone:x.phone||'',
+      email:x.email||'',
+      notes:x.notes||''
     }));
 
     const expenses=(expensesRes.data||[]).map(x=>({
@@ -492,27 +533,33 @@
     };
 
     current=user;
+
     localStorage.setItem('laziz_cloud_business',cloudBusinessId);
+
     show('app');
     openApp();
   }
 
   window.openApp=function(){
     show('app');
+
     $$('.navbtn[data-page]').forEach(b=>{
       b.onclick=()=>navigate(b.dataset.page);
     });
+
     navigate('dashboard');
     refreshAlerts(false);
   };
 
   window.logout=async function(){
     await sb.auth.signOut();
+
     cloudUser=null;
     cloudBusinessId=null;
     cloudRole=null;
     current=null;
     cart=[];
+
     show('landing');
   };
 
@@ -520,9 +567,11 @@
     if(!cart.length)return toast('Add at least one product');
 
     const b=biz();
+
     const subtotal=cart.reduce(
       (a,l)=>a+b.products.find(p=>p.id===l.id).price*l.qty,0
     );
+
     const discount=Number($('#posdiscount').value||0);
 
     if(!Number.isFinite(discount)||discount<0||discount>subtotal)
@@ -574,7 +623,9 @@
       };
 
       cart=[];
+
       await loadCloudData();
+
       receipt(s);
       toast('Sale saved securely to LAZIZ cloud');
     }catch(err){
@@ -584,8 +635,14 @@
 
   window.productModal=function(id){
     const p=biz().products.find(x=>x.id===id)||{
-      name:'',sku:'',category:'',unit:'',
-      cost:'',price:'',qty:'',reorder:''
+      name:'',
+      sku:'',
+      category:'',
+      unit:'',
+      cost:'',
+      price:'',
+      qty:'',
+      reorder:''
     };
 
     modal(`
@@ -635,7 +692,10 @@
     $('#cloudproductform').onsubmit=async e=>{
       e.preventDefault();
 
+      if(busy)return;
+
       const f=new FormData(e.target);
+
       const payload={
         business_id:cloudBusinessId,
         name:String(f.get('name')).trim(),
@@ -674,12 +734,15 @@
             reference:'Product form',
             actor_id:cloudUser.id
           });
+
           if(error)throw error;
         }
 
         closeModal();
+
         await loadCloudData();
         navigate('products');
+
         toast('Product saved to cloud');
       }catch(err){
         fail(err);
@@ -699,6 +762,7 @@
 
     await loadCloudData();
     navigate('products');
+
     toast('Product deactivated');
   };
 
@@ -738,6 +802,7 @@
 
     $('#settingsform').onsubmit=async e=>{
       e.preventDefault();
+
       const f=new FormData(e.target);
 
       const {error}=await sb.from('businesses')
@@ -751,6 +816,7 @@
 
       await loadCloudData();
       navigate('settings');
+
       toast('Business profile updated');
     };
 
@@ -760,6 +826,7 @@
 
       if(cloudRole!=='owner')
         return toast('Only the business owner can generate this code.');
+
       if(busy)return;
 
       busy=true;
@@ -780,7 +847,9 @@
           throw new Error(data?.error||'The server did not return a connection code.');
 
         output.style.display='block';
+
         output.textContent='BUSINESS CONNECTION CODE: '+data.connection_code+' — Copy this code and give it to your authorised salesgirls. It will not be shown again after you leave this page.';
+
         toast('New business connection code generated.');
       }catch(err){
         fail(err);
@@ -825,6 +894,9 @@
 
     $('#cloudpersonform').onsubmit=async e=>{
       e.preventDefault();
+
+      if(busy)return;
+
       const f=new FormData(e.target);
 
       const payload={
@@ -840,8 +912,10 @@
         if(error)throw error;
 
         closeModal();
+
         await loadCloudData();
         navigate(type);
+
         toast(label+' saved to cloud');
       }catch(err){
         fail(err);
@@ -863,6 +937,7 @@
 
       await loadCloudData();
       navigate(type);
+
       toast('Record deleted');
     }catch(err){
       fail(err);
@@ -895,7 +970,29 @@
           <input name="amount" type="number" min="0.01" step=".01" required>
         </div>
         <div class="field">
-          <label>Payment method</qFinite(amount)||amount<=0)
+          <label>Payment method</label>
+          <select name="payment">
+            <option>Cash</option>
+            <option>Bank transfer</option>
+            <option>POS</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn">Save expense</button>
+        </div>
+      </form>`);
+
+    $('#cloudexpenseform').onsubmit=async e=>{
+      e.preventDefault();
+
+      if(busy)return;
+
+      const f=new FormData(e.target);
+      const amount=Number(f.get('amount'));
+
+      if(!Number.isFinite(amount)||amount<=0)
         return toast('Enter an amount greater than zero');
 
       const payload={
@@ -907,16 +1004,22 @@
         actor_id:cloudUser.id
       };
 
+      busy=true;
+
       try{
         const {error}=await sb.from('expenses').insert(payload);
         if(error)throw error;
 
         closeModal();
+
         await loadCloudData();
         navigate('expenses');
+
         toast('Expense saved to cloud');
       }catch(err){
         fail(err);
+      }finally{
+        busy=false;
       }
     };
   };
