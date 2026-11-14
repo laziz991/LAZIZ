@@ -552,16 +552,16 @@
   };
 
   window.logout=async function(){
-    await sb.auth.signOut();
-
+    sb.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'){
     cloudUser=null;
     cloudBusinessId=null;
     cloudRole=null;
     current=null;
     cart=[];
-
-    show('landing');
-  };
+    showAuth('login');
+  }
+});
 
   window.checkout=async function(){
     if(!cart.length)return toast('Add at least one product');
@@ -812,55 +812,76 @@
         })
         .eq('id',cloudBusinessId);
 
-      if(error)return fail(error);
+      
+window.expenseModal=function(){
+  modal(`
+    <h2>Record expense</h2>
+    <form id="cloudexpenseform">
+      <div class="field">
+        <label>Description</label>
+        <input name="description" required>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select name="category">
+          <option>Rent</option>
+          <option>Transport</option>
+          <option>Utilities</option>
+          <option>Salaries</option>
+          <option>Repairs</option>
+          <option>Purchases</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Amount (₦)</label>
+        <input name="amount" type="number" min="0.01" step=".01" required>
+      </div>
+      <div class="field">
+        <label>Payment method</label>
+        <select name="payment" required>
+          <option value="cash">Cash</option>
+          <option value="transfer">Bank transfer</option>
+          <option value="card">Card</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn">Save expense</button>
+      </div>
+    </form>`);
 
-      await loadCloudData();
-      navigate('settings');
+  $('#cloudexpenseform').onsubmit=async e=>{
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const amount=Number(f.get('amount'));
 
-      toast('Business profile updated');
+    if(!Number.isFinite(amount)||amount<=0)
+      return toast('Enter an amount greater than zero');
+
+    const payload={
+      business_id:cloudBusinessId,
+      description:String(f.get('description')).trim(),
+      category:f.get('category'),
+      amount,
+      payment_method:f.get('payment'),
+      actor_id:cloudUser.id
     };
 
-    $('#generate-staff-code')?.addEventListener('click',async e=>{
-      const button=e.currentTarget;
-      const output=$('#staff-code-result');
-
-      if(cloudRole!=='owner')
-        return toast('Only the business owner can generate this code.');
-
-      if(busy)return;
-
-      busy=true;
-      button.disabled=true;
-      button.textContent='GENERATING…';
-      output.style.display='none';
-      output.textContent='';
-
-      try{
-        const {data,error}=await sb.functions.invoke('cashier-auth',{
-          body:{action:'generate_code',business_id:cloudBusinessId}
-        });
-
-        if(error)
-          throw new Error(data?.error||error.message||'Could not generate the connection code.');
-
-        if(!data?.success||!data.connection_code)
-          throw new Error(data?.error||'The server did not return a connection code.');
-
-        output.style.display='block';
-
-        output.textContent='BUSINESS CONNECTION CODE: '+data.connection_code+' — Copy this code and give it to your authorised salesgirls. It will not be shown again after you leave this page.';
-
-        toast('New business connection code generated.');
-      }catch(err){
-        fail(err);
-      }finally{
-        busy=false;
-        button.disabled=false;
-        button.textContent='Generate / replace connection code';
-      }
-    });
+    try{
+      const {error}=await sb.from('expenses').insert(payload);
+      if(error)throw error;
+      closeModal();
+      await loadCloudData();
+      navigate('expenses');
+      toast('Expense saved to cloud');
+    }catch(err){
+      fail(err);
+    }
   };
+};
 
+       
   // Cloud-backed customer and supplier records.
   window.personModal=function(type){
     if(!['customers','suppliers'].includes(type))return;
@@ -1029,15 +1050,36 @@
     toast('Refunds are not enabled yet. No refund or stock change was made.');
   };
 
-  sb.auth.onAuthStateChange((event,session)=>{
-    if(event==='SIGNED_OUT'){
+sb.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'){
+    cloudUser=null;
+    cloudBusinessId=null;
+    cloudRole=null;
+    current=null;
+    cart=[];
+    showAuth('login');
+  }
+});
       show('landing');
     }
   });
 
-  bootWorkspace().catch(err=>{
-    fail(err);
-    show('landing');
-  });
-
+  if(!session?.user){
+  cloudUser=null;
+  cloudBusinessId=null;
+  cloudRole=null;
+  showAuth('login');
+  return;
+  }
+bootWorkspace().catch(err=>{
+  fail(err);
+  show('auth');
+  $('#authbox').innerHTML=`
+    <h2>LAZIZ cloud connection problem</h2>
+    <p class="muted">Your workspace could not be loaded. Check your internet connection and try again.</p>
+    <button class="btn" onclick="location.reload()">Try again</button>
+    <div class="auth-switch">
+      <a onclick="authForm('login')">Go to sign in</a>
+    </div>`;
+});
 })();
