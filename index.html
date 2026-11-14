@@ -14,17 +14,7 @@
 </head>
 <body>
 <header class="topbar"><div class="brand">LAZIZ<span>.</span></div><nav class="toplinks"><a href="#features">Features</a><a href="#industries">Industries</a><a href="#about">About</a><button class="btn gold" onclick="showAuth('login')">Business login</button></nav></header>
-<section id="landing">
-<div class="landing"><div class="hero"><div><div class="eyebrow">One platform. Every business.</div><h1>Run your business.<br><span style="color:#e7c579">Grow with confidence.</span></h1><p>LAZIZ brings sales, stock, customers, suppliers, expenses and business reports together in one simple management platform — starting with building materials and hardware businesses.</p><div class="row" style="margin-top:25px;flex-wrap:wrap"><button class="btn gold" onclick="showAuth('register')">Create business account</button><button class="btn" style="background:#ffffff20;border:1px solid #ffffff55" onclick="showAuth('login')">Sign in to dashboard</button></div><p style="font-size:11px;margin-top:18px;color:#b9cbbf">Retail • Wholesale • Building materials • Supermarkets • Pharmacies • Restaurants</p></div>
-<div class="hero-card"><div class="hero-card-head"><b>LAZIZ business tools</b><span class="pill">Connected workspace</span></div><div class="quick-grid"><div class="quick"><b>Sales counter</b><small>Fast cashier checkout</small></div><div class="quick"><b>Live inventory</b><small>Stock and unit tracking</small></div><div class="quick"><b>Business accounts</b><small>Sales and expenses</small></div><div class="quick"><b>Reports</b><small>Business performance</small></div></div><p style="color:#718078;font-size:12px;margin:18px 0 0">Your business data appears here after you add products and record sales.</p></div></div></div>
-<section class="section" id="features"><h2>Everything your business needs</h2><p class="section-intro">Manage everyday operations from one connected workspace. Start with the tools you need and expand as your business grows.</p><div class="feature-grid">
-<div class="feature"><div class="icon">▣</div><b>Point of sale</b><p>Record cash, transfer and card sales, issue receipts and track transactions.</p></div>
-<div class="feature"><div class="icon">▤</div><b>Inventory control</b><p>Track quantities, units, purchase cost, selling prices, reorder levels and stock movement.</p></div>
-<div class="feature"><div class="icon">₦</div><b>Accounts & expenses</b><p>Record operating expenses, customer balances, supplier payments and basic profit summaries.</p></div>
-<div class="feature"><div class="icon">♙</div><b>Customers & suppliers</b><p>Keep contact details, purchase history, credit balances and supplier records.</p></div>
-<div class="feature"><div class="icon">▥</div><b>Reports & insights</b><p>Review sales, stock value, low-stock items, expenses and estimated gross profit.</p></div>
-<div class="feature"><div class="icon">⌂</div><b>Multi-industry setup</b><p>Configure the workspace for building materials, retail, wholesale, pharmacy, food service and more.</p></div>
-</div></section>
+ 
 <section class="section" id="industries" style="padding-top:5px"><h2>Built for different kinds of business</h2><p class="section-intro">Building materials and hardware are the first setup priority. The platform also includes categories for other retail and service businesses.</p><div class="feature-grid">
 <div class="feature"><b>Building materials & hardware</b><p>Cement, iron rods, roofing, timber, tiles, plumbing, electricals, paint and tools. Sell by bag, piece, length, metre, tonne and more.</p></div>
 <div class="feature"><b>Supermarkets & general shops</b><p>Fast checkout, barcode-ready product records, stock levels and daily sales.</p></div>
@@ -37,7 +27,7 @@
 <footer class="footer"><b>LAZIZ Business Management</b><span>Sales • Inventory • Accounts • Reports</span><span>© <span id="year"></span> LAZIZ</span></footer>
 </section>
 <section id="auth" class="hidden"><div class="auth-wrap"><div class="auth" id="authbox"></div></div></section>
-<section id="appview" class="hidden"><div class="app"><aside class="sidebar"><div class="side-brand" style="font-weight:850;padding:0 12px 14px;letter-spacing:1px">LAZIZ <span style="color:#c99d48">BUSINESS</span></div><div class="side-label">WORKSPACE</div>
+<section id="auth">"><div class="app"><aside class="sidebar"><div class="side-brand" style="font-weight:850;padding:0 12px 14px;letter-spacing:1px">LAZIZ <span style="color:#c99d48">BUSINESS</span></div><div class="side-label">WORKSPACE</div>
 <button class="navbtn active" data-page="dashboard"><span>▦</span>Dashboard</button><button class="navbtn" data-page="pos"><span>▣</span>Point of sale</button><button class="navbtn" onclick="openOfflinePOS()"><span>⌁</span>Separate sales app</button><button class="navbtn" data-page="products"><span>▤</span>Products & stock</button><button class="navbtn" data-page="customers"><span>♙</span>Customers</button><button class="navbtn" data-page="suppliers"><span>♧</span>Suppliers</button><button class="navbtn" data-page="sales"><span>↗</span>Sales history</button><button class="navbtn" data-page="stocklog"><span>⇅</span>Stock movement history</button><button class="navbtn" data-page="notifications"><span>♢</span>Notifications <span id="alertcount" style="margin-left:auto;color:#b23b32;font-size:11px"></span></button><button class="navbtn" data-page="expenses"><span>−</span>Expenses</button><button class="navbtn" data-page="reports"><span>▥</span>Reports</button><div class="side-label">SETTINGS</div><button class="navbtn" data-page="settings"><span>⚙</span>Business settings</button><div class="side-bottom"><button class="navbtn" onclick="logout()"><span>⇥</span>Log out</button></div></aside><main class="main" id="main"></main></div></section>
 <div id="modalroot"></div><div id="toastroot"></div><div id="alertstack" class="alert-stack" aria-live="polite"></div>
 <script src="supabase-config.js"></script>
@@ -64,8 +54,16 @@ function load(){
 function save(){localStorage.setItem(key,JSON.stringify(db))}
 function biz(){return db.businesses[current?.businessId]}
 function defaults(name,industry){return {name,industry,created:new Date().toISOString(),currency:'NGN',products:[],customers:[],suppliers:[],sales:[],expenses:[],stockMovements:[],notifications:[]}}
-function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
-function show(section){$('#landing').classList.toggle('hidden',section!=='landing');$('#auth').classList.toggle('hidden',section!=='auth');$('#appview').classList.toggle('hidden',section!=='app')}
+function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}function show(section){
+  const landing=document.getElementById('landing');
+  if(landing) landing.classList.add('hidden');
+
+  const auth=document.getElementById('auth');
+  const app=document.getElementById('appview');
+
+  if(auth) auth.classList.toggle('hidden',section!=='auth');
+  if(app) app.classList.toggle('hidden',section!=='app');
+ }
 function showAuth(mode){show('auth');authForm(mode)}
 function authForm(mode){
  const box=$('#authbox');
