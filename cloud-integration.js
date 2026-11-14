@@ -14,6 +14,7 @@
   const fail=e=>{console.error(e);toast(e?.message||'Something went wrong. Please try again.');};
   function authNotice(msg){return `<div class="notice">${esc(msg)}</div>`;}
   let recoveryEmail='';
+
   window.authForm=function(mode){
     if(mode==='forgot'){
       $('#authbox').innerHTML=`<h2>Reset your password</h2><p class="muted">Enter the email address on your LAZIZ account. We will send a six-digit verification code.</p><form id="cloudforgot"><div class="field"><label>Email address</label><input name="email" type="email" required autocomplete="email"></div><button class="btn" ${busy?'disabled':''}>Send reset code</button></form><div class="auth-switch"><a onclick="authForm('login')">Back to sign in</a></div>`;
@@ -37,6 +38,7 @@
     $('#cloudlogin')?.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;try{const f=new FormData(e.target);const {error}=await sb.auth.signInWithPassword({email:String(f.get('email')).trim().toLowerCase(),password:f.get('password')});if(error)throw error;await bootWorkspace();}catch(err){fail(err)}finally{busy=false;}});
     $('#cloudregister')?.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;try{const f=new FormData(e.target);const {data,error}=await sb.auth.signUp({email:String(f.get('email')).trim().toLowerCase(),password:f.get('password'),options:{data:{full_name:String(f.get('owner')).trim()},emailRedirectTo:location.origin==='null'?undefined:location.origin}});if(error)throw error;if(data.session){await bootWorkspace();}else{$('#authbox').innerHTML=`<h2>Check your email</h2><p>We sent a confirmation email to <b>${esc(f.get('email'))}</b>. Confirm your address, then return here and sign in.</p><button class="btn" onclick="authForm('login')">Go to sign in</button>`;}}catch(err){fail(err)}finally{busy=false;}});
   };
+
   window.showRecoveryCode=function(){
     $('#authbox').innerHTML=`<h2>Enter your reset code</h2><p class="muted">We sent a six-digit code to <b>${esc(recoveryEmail)}</b>. Enter it below.</p><form id="cloudverifyrecovery"><div class="field"><label>Six-digit code</label><input name="token" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required placeholder="000000"></div><button class="btn">Verify code</button></form><div class="auth-switch"><a onclick="authForm('forgot')">Send another code</a> · <a onclick="authForm('login')">Back to sign in</a></div>`;
     $('#cloudverifyrecovery').onsubmit=async e=>{
@@ -51,6 +53,7 @@
       finally{busy=false;}
     };
   };
+
   window.showNewPassword=function(){
     $('#authbox').innerHTML=`<h2>Create a new password</h2><p class="muted">Choose a new password for your LAZIZ account.</p><form id="cloudnewpassword"><div class="field"><label>New password</label><input name="password" type="password" minlength="8" required autocomplete="new-password"></div><div class="field"><label>Confirm new password</label><input name="confirm" type="password" minlength="8" required autocomplete="new-password"></div><button class="btn">Save new password</button></form>`;
     $('#cloudnewpassword').onsubmit=async e=>{
@@ -66,7 +69,9 @@
       finally{busy=false;}
     };
   };
-     window.showAuth=function(mode){show('auth');authForm(mode)};
+
+  window.showAuth=function(mode){show('auth');authForm(mode)};
+
   async function bootWorkspace(){
     const {data:{session},error:se}=await sb.auth.getSession();if(se)throw se;if(!session?.user){show('landing');return;}
     cloudUser=session.user;
@@ -76,6 +81,7 @@
       $('#workspaceform').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;try{const f=new FormData(e.target);const {data,error}=await sb.rpc('create_business_workspace',{p_name:String(f.get('business')).trim(),p_industry:f.get('industry')});if(error)throw error;cloudBusinessId=data;await loadCloudData();}catch(err){fail(err)}finally{busy=false;}};return;}
     cloudBusinessId=membership.business_id;cloudRole=membership.role;await loadCloudData();
   }
+
   async function loadCloudData(){
     const [businessRes,productsRes,salesRes,movesRes,customersRes,suppliersRes,expensesRes]=await Promise.all([
       sb.from('businesses').select('*').eq('id',cloudBusinessId).single(),
@@ -98,16 +104,21 @@
     const user={id:cloudUser.id,email:cloudUser.email,owner:cloudUser.user_metadata?.full_name||cloudUser.email,businessId:cloudBusinessId,role:cloudRole||'owner'};
     db={users:[user],businesses:{[cloudBusinessId]:{id:cloudBusinessId,name:b.name,industry:b.industry,currency:b.currency||'NGN',products,customers,suppliers,sales,expenses,stockMovements:movements,notifications:[]}}};current=user;localStorage.setItem('laziz_cloud_business',cloudBusinessId);show('app');openApp();
   }
+
   window.openApp=function(){show('app');$$('.navbtn[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));navigate('dashboard');refreshAlerts(false);};
   window.logout=async function(){await sb.auth.signOut();cloudUser=null;cloudBusinessId=null;cloudRole=null;current=null;cart=[];show('landing');};
+
   window.checkout=async function(){
     if(!cart.length)return toast('Add at least one product');const b=biz(),subtotal=cart.reduce((a,l)=>a+b.products.find(p=>p.id===l.id).price*l.qty,0),discount=Number($('#posdiscount').value||0);if(!Number.isFinite(discount)||discount<0||discount>subtotal)return toast('Discount must be between ₦0 and the subtotal');
     const transactionId=uid(),receiptNo='LZ-'+Date.now().toString().slice(-8);try{const {data,error}=await sb.rpc('create_sale_atomic',{p_business_id:cloudBusinessId,p_receipt_no:receiptNo,p_customer_name:$('#poscustomer').value,p_payment_method:$('#payment').value,p_discount:discount,p_client_transaction_id:transactionId,p_items:cart.map(l=>({product_id:l.id,quantity:l.qty})),p_source:'online'});if(error)throw error;const {data:sr,error:se}=await sb.from('sales').select('*').eq('id',data).single();if(se)throw se;const {data:ir,error:ie}=await sb.from('sale_items').select('*').eq('sale_id',data);if(ie)throw ie;const lines=(ir||[]).map(i=>({productId:i.product_id,name:i.product_name,qty:Number(i.quantity),unit:i.unit,price:Number(i.unit_price),cost:Number(i.unit_cost)}));const s={id:sr.id,receipt:sr.receipt_no,date:sr.created_at,customer:sr.customer_name||'',payment:sr.payment_method,lines,subtotal:Number(sr.subtotal),discount:Number(sr.discount),total:Number(sr.total),profit:Number(sr.total)-lines.reduce((a,l)=>a+l.qty*l.cost,0)};cart=[];await loadCloudData();receipt(s);toast('Sale saved securely to LAZIZ cloud');}catch(err){fail(err)}
   };
-     window.productModal=function(id){const p=biz().products.find(x=>x.id===id)||{name:'',sku:'',category:'',unit:'',cost:'',price:'',qty:'',reorder:''};modal(`<h2>${id?'Edit product':'Add a product'}</h2><form id="cloudproductform" class="form-grid"><div class="field"><label>Product name</label><input name="name" required value="${esc(p.name)}"></div><div class="field"><label>SKU / product code</label><input name="sku" value="${esc(p.sku)}"></div><div class="field"><label>Category</label><input name="category" required value="${esc(p.category)}"></div><div class="field"><label>Unit of measure</label><select name="unit" required><option value="" disabled ${!p.unit?'selected':''}>Choose unit</option>${['piece','bag','tonne','kg','metre','length','sheet','bundle','carton','box','bucket','litre','roll','pack','set','dozen','unit'].map(x=>`<option ${p.unit===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Purchase cost (₦)</label><input name="cost" type="number" min="0" step=".01" required value="${p.cost}"></div><div class="field"><label>Selling price (₦)</label><input name="price" type="number" min="0" step=".01" required value="${p.price}"></div><div class="field"><label>Quantity in stock</label><input name="qty" type="number" min="0" step=".001" required value="${p.qty}"></div><div class="field"><label>Low-stock alert at</label><input name="reorder" type="number" min="0" step=".001" required value="${p.reorder}"></div><div class="modal-actions wide"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save to cloud</button></div></form>`);
+
+  window.productModal=function(id){const p=biz().products.find(x=>x.id===id)||{name:'',sku:'',category:'',unit:'',cost:'',price:'',qty:'',reorder:''};modal(`<h2>${id?'Edit product':'Add a product'}</h2><form id="cloudproductform" class="form-grid"><div class="field"><label>Product name</label><input name="name" required value="${esc(p.name)}"></div><div class="field"><label>SKU / product code</label><input name="sku" value="${esc(p.sku)}"></div><div class="field"><label>Category</label><input name="category" required value="${esc(p.category)}"></div><div class="field"><label>Unit of measure</label><select name="unit" required><option value="" disabled ${!p.unit?'selected':''}>Choose unit</option>${['piece','bag','tonne','kg','metre','length','sheet','bundle','carton','box','bucket','litre','roll','pack','set','dozen','unit'].map(x=>`<option ${p.unit===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Purchase cost (₦)</label><input name="cost" type="number" min="0" step=".01" required value="${p.cost}"></div><div class="field"><label>Selling price (₦)</label><input name="price" type="number" min="0" step=".01" required value="${p.price}"></div><div class="field"><label>Quantity in stock</label><input name="qty" type="number" min="0" step=".001" required value="${p.qty}"></div><div class="field"><label>Low-stock alert at</label><input name="reorder" type="number" min="0" step=".001" required value="${p.reorder}"></div><div class="modal-actions wide"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save to cloud</button></div></form>`);
     $('#cloudproductform').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),payload={business_id:cloudBusinessId,name:String(f.get('name')).trim(),sku:String(f.get('sku')).trim()||null,category:String(f.get('category')).trim(),unit:f.get('unit'),cost:Number(f.get('cost')),price:Number(f.get('price')),quantity:Number(f.get('qty')),reorder_level:Number(f.get('reorder')),active:true,updated_at:new Date().toISOString()};try{let old=Number(p.qty||0),res;if(id)res=await sb.from('products').update(payload).eq('id',id).eq('business_id',cloudBusinessId).select().single();else res=await sb.from('products').insert(payload).select().single();if(res.error)throw res.error;const diff=payload.quantity-old;if(diff!==0){const {error}=await sb.from('stock_movements').insert({business_id:cloudBusinessId,product_id:res.data.id,movement_type:id?'adjustment':'opening_stock',quantity_change:diff,quantity_after:payload.quantity,reference:'Product form',actor_id:cloudUser.id});if(error)throw error;}closeModal();await loadCloudData();navigate('products');toast('Product saved to cloud');}catch(err){fail(err)}};
   };
+
   window.deleteProduct=async function(id){if(!confirm('Deactivate this product? Its historical sale records will be kept.'))return;const {error}=await sb.from('products').update({active:false,updated_at:new Date().toISOString()}).eq('id',id).eq('business_id',cloudBusinessId);if(error)return fail(error);await loadCloudData();navigate('products');toast('Product deactivated');};
+
   window.settings=function(){
   const b=biz();
   const ownerCanManage=cloudRole==='owner';
@@ -160,6 +171,7 @@
     finally{busy=false;button.disabled=false;button.textContent='Generate / replace connection code'}
   });
 };
+
   // Cloud-backed customer and supplier records.
   window.personModal=function(type){
     if(!['customers','suppliers'].includes(type))return;
@@ -167,16 +179,19 @@
     modal(`<h2>Add ${label.toLowerCase()}</h2><form id="cloudpersonform"><div class="field"><label>${label} name</label><input name="name" required></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Address / notes</label><textarea name="notes" rows="3"></textarea></div><div class="modal-actions"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save to cloud</button></div></form>`);
     $('#cloudpersonform').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const payload={business_id:cloudBusinessId,name:String(f.get('name')).trim(),phone:String(f.get('phone')).trim()||null,email:String(f.get('email')).trim()||null,notes:String(f.get('notes')).trim()||null};try{const {error}=await sb.from(type).insert(payload);if(error)throw error;closeModal();await loadCloudData();navigate(type);toast(label+' saved to cloud');}catch(err){fail(err)}};
   };
+
   window.deletePerson=async function(type,id){
     if(!['customers','suppliers'].includes(type))return;
     if(!confirm('Delete this '+(type==='customers'?'customer':'supplier')+' record?'))return;
     try{const {error}=await sb.from(type).delete().eq('id',id).eq('business_id',cloudBusinessId);if(error)throw error;await loadCloudData();navigate(type);toast('Record deleted');}catch(err){fail(err)}
   };
+
   // Cloud-backed expense recording. Supabase RLS limits this to owners/managers.
   window.expenseModal=function(){
     modal(`<h2>Record expense</h2><form id="cloudexpenseform"><div class="field"><label>Description</label><input name="description" required></div><div class="field"><label>Category</label><select name="category"><option>Rent</option><option>Transport</option><option>Utilities</option><option>Salaries</option><option>Repairs</option><option>Purchases</option><option>Other</option></select></div><div class="field"><label>Amount (₦)</label><input name="amount" type="number" min="0.01" step=".01" required></div><div class="field"><label>Payment method</label><select name="payment"><option>Cash</option><option>Bank transfer</option><option>POS / Card</option></select></div><div class="modal-actions"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save to cloud</button></div></form>`);
     $('#cloudexpenseform').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),amount=Number(f.get('amount'));if(!Number.isFinite(amount)||amount<=0)return toast('Enter an amount greater than zero');const payload={business_id:cloudBusinessId,description:String(f.get('description')).trim(),category:f.get('category'),amount,payment_method:f.get('payment'),actor_id:cloudUser.id};try{const {error}=await sb.from('expenses').insert(payload);if(error)throw error;closeModal();await loadCloudData();navigate('expenses');toast('Expense saved to cloud');}catch(err){fail(err)}};
   };
+
   // Refunds remain disabled until an atomic stock-return workflow is installed.
   window.refundSale=function(){toast('Refunds are not enabled yet. No refund or stock change was made.');};
   sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){show('landing')} });
