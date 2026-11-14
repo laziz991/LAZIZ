@@ -114,7 +114,37 @@ function toast(msg){$('#toastroot').innerHTML=`<div class="toast">${esc(msg)}</d
 $('#year').textContent=new Date().getFullYear();
 let saved=localStorage.getItem(sessionKey);if(saved){let u=db.users.find(x=>x.id===saved);if(u){current=u;openApp()}}
 </script> 
-<script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="cloud-integration.js"></script>
-</body></html>
+
+<script>
+window.addEventListener('load', function () {
+  const configOK = !!(
+    window.LAZIZ_SUPABASE_CONFIG &&
+    window.LAZIZ_SUPABASE_CONFIG.url &&
+    window.LAZIZ_SUPABASE_CONFIG.publishableKey
+  );
+
+  const libraryOK = !!(
+    window.supabase &&
+    window.supabase.createClient
+  );
+
+  const cloudLoginOK = typeof window.authForm === 'function' &&
+    window.authForm.toString().includes('Forgot password');
+
+  const report = document.createElement('div');
+  report.style.cssText =
+    'position:fixed;bottom:10px;left:10px;right:10px;z-index:99999;background:#10251e;color:white;padding:15px;border-radius:10px;font-size:13px;line-height:2';
+
+  report.innerHTML =
+    '<b>LAZIZ CONNECTION TEST</b><br>' +
+    'Supabase configuration: ' + (configOK ? 'OK' : 'FAILED') + '<br>' +
+    'Supabase library: ' + (libraryOK ? 'OK' : 'FAILED') + '<br>' +
+    'Cloud login installed: ' + (cloudLoginOK ? 'OK' : 'FAILED');
+
+  document.body.appendChild(report);
+});
+</script>
+</body>
+</html>
