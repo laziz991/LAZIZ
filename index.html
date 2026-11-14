@@ -50,8 +50,6 @@ let db=load(), current=null, cart=[];
 function load(){
  try{
   const data=JSON.parse(localStorage.getItem(key))||{users:[],businesses:{}};
-  // One-time cleanup for the five sample products shipped in the first LAZIZ draft.
-  // Match both the exact demo SKU and product name so owner-entered stock is preserved.
   if(!data.schemaVersion || data.schemaVersion<2){
    const demo=[['BLD-001','Portland Cement 50kg'],['BLD-002','12mm Iron Rod'],['BLD-003','Roofing Sheet'],['BLD-004','Wall Paint 20L'],['BLD-005','PVC Pipe 4 inch']];
    Object.values(data.businesses||{}).forEach(b=>{
@@ -69,10 +67,15 @@ function defaults(name,industry){return {name,industry,created:new Date().toISOS
 function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
 function show(section){$('#landing').classList.toggle('hidden',section!=='landing');$('#auth').classList.toggle('hidden',section!=='auth');$('#appview').classList.toggle('hidden',section!=='app')}
 function showAuth(mode){show('auth');authForm(mode)}
-function authForm(mode){$('#authbox').innerHTML=mode==='login'?`<h2>Welcome back</h2><p class="muted">Sign in to your LAZIZ business workspace.</p><form id="loginform"><div class="field"><label>Email address</label><input name="email" type="email" required placeholder="you@business.com"></div><div class="field"><label>Password</label><input name="password" type="password" required></div><button class="btn">Sign in</button></form><div class="auth-switch">New to LAZIZ? <a onclick="authForm('register')">Create a business account</a></div><div class="notice">Demo mode: accounts are stored in this browser on this device. This is not yet cloud-hosted multi-user authentication.</div>`:
-`<h2>Create your business</h2><p class="muted">Set up your LAZIZ workspace in a few steps.</p><form id="regform"><div class="field"><label>Business name</label><input name="business" required placeholder="e.g. Laziz Building Mart"></div><div class="field"><label>Business category</label><select name="industry"><option>Building materials & hardware</option><option>Supermarket & general shop</option><option>Pharmacy</option><option>Fashion & boutique</option><option>Electronics</option><option>Wholesale & distribution</option><option>Restaurant & café</option><option>Hotel & hospitality</option><option>Other</option></select></div><div class="field"><label>Your full name</label><input name="owner" required></div><div class="field"><label>Email address</label><input name="email" type="email" required></div><div class="field"><label>Password (at least 6 characters)</label><input name="password" type="password" minlength="6" required></div><button class="btn">Create account</button></form><div class="auth-switch">Already registered? <a onclick="authForm('login')">Sign in</a></div><div class="notice">Prototype account storage is local to this browser. Do not use real customer or financial data until a secure backend is connected.</div>`;
-$('#loginform')?.addEventListener('submit',e=>{e.preventDefault();let f=new FormData(e.target),u=db.users.find(x=>x.email===f.get('email').toLowerCase()&&x.password===f.get('password'));if(!u)return toast('Email or password is incorrect');current=u;localStorage.setItem(sessionKey,u.id);openApp()});
-$('#regform')?.addEventListener('submit',e=>{e.preventDefault();let f=new FormData(e.target),email=f.get('email').toLowerCase();if(db.users.some(x=>x.email===email))return toast('An account with this email already exists');let id=uid(),bid=uid(),u={id,businessId:bid,owner:f.get('owner'),email,password:f.get('password')};db.users.push(u);db.businesses[bid]=defaults(f.get('business'),f.get('industry'));save();current=u;localStorage.setItem(sessionKey,id);openApp()})}
+function authForm(mode){
+ const box=$('#authbox');
+ if(!box)return;
+ box.innerHTML=`
+  <h2>Connecting to LAZIZ Cloud</h2>
+  <p class="muted">Secure cloud authentication is loading. Please wait a moment.</p>
+  <div class="notice">LAZIZ uses secure cloud sign-in. If this message remains, refresh the page and check the cloud connection.</div>
+ `;
+}
 function openOfflinePOS(){window.open('offline-pos.html','_blank')}
 function logout(){current=null;localStorage.removeItem(sessionKey);cart=[];show('landing')}
 function openApp(){show('app');$$('.navbtn[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));navigate('dashboard');refreshAlerts(false)}
@@ -107,18 +110,15 @@ function expenses(){let b=biz();$('#main').innerHTML=head('Expenses','Record ope
 function expenseModal(){modal(`<h2>Record expense</h2><form id="expenseform"><div class="field"><label>Description</label><input name="description" required></div><div class="field"><label>Category</label><select name="category"><option>Rent</option><option>Transport</option><option>Utilities</option><option>Salaries</option><option>Repairs</option><option>Purchases</option><option>Other</option></select></div><div class="field"><label>Amount (₦)</label><input name="amount" type="number" min="0" step=".01" required></div><div class="field"><label>Payment method</label><select name="payment"><option>Cash</option><option>Bank transfer</option><option>POS / Card</option></select></div><div class="modal-actions"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn">Save expense</button></div></form>`);$('#expenseform').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);biz().expenses.push({id:uid(),date:new Date().toISOString(),description:f.get('description'),category:f.get('category'),amount:+f.get('amount'),payment:f.get('payment')});save();closeModal();expenses();toast('Expense saved')}}
 function reports(){let b=biz(),rev=b.sales.reduce((a,s)=>a+s.total,0),cost=b.sales.reduce((a,s)=>a+s.total-s.profit,0),exp=b.expenses.reduce((a,x)=>a+x.amount,0),profit=rev-cost-exp;$('#main').innerHTML=head('Reports & insights','A summary of recorded sales, expenses and inventory.')+`<div class="cards">${stat('Sales revenue',money(rev),'All recorded sales')}${stat('Cost of goods sold',money(cost),'Estimated from product cost')}${stat('Expenses',money(exp),'Recorded operating costs')}${stat('Estimated net result',money(profit),'Gross profit less expenses')}</div><div class="split"><div class="panel"><h3>Sales by payment method</h3>${['Cash','Bank transfer','POS / Card','Credit'].map(m=>{let n=b.sales.filter(s=>s.payment===m).reduce((a,s)=>a+s.total,0);return `<div class="row between" style="padding:12px 0;border-bottom:1px solid var(--line)"><span>${m}</span><b>${money(n)}</b></div>`}).join('')}</div><div class="panel"><h3>Inventory valuation</h3><div class="total">${money(b.products.reduce((a,p)=>a+p.qty*p.cost,0))}</div><p class="muted">Estimated stock value at purchase cost.</p><p><b>${b.products.filter(p=>p.qty<=p.reorder).length}</b> products at or below reorder level.</p></div></div><div class="panel"><h3>Export your records</h3><p class="muted">Download a CSV snapshot of your product catalogue and sales.</p><button class="btn secondary" onclick="exportCSV('products')">Export products CSV</button> <button class="btn secondary" onclick="exportCSV('sales')">Export sales CSV</button>`}
 function exportCSV(type){let rows=type==='products'?[['Name','SKU','Category','Unit','Cost','Price','Quantity','Reorder'],...biz().products.map(p=>[p.name,p.sku,p.category,p.unit,p.cost,p.price,p.qty,p.reorder])]:[['Receipt','Date','Customer','Payment','Subtotal','Discount','Balance paid','Profit'],...biz().sales.map(s=>[s.receipt,s.date,s.customer,s.payment,s.subtotal??s.total,s.discount||0,s.total,s.profit])];let csv=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='laziz-'+type+'.csv';a.click();URL.revokeObjectURL(a.href)}
-function settings(){let b=biz();$('#main').innerHTML=head('Business settings','Manage your workspace details.')+`<div class="panel" style="max-width:650px"><h3>Business profile</h3><form id="settingsform"><div class="field"><label>Business name</label><input name="name" value="${esc(b.name)}" required></div><div class="field"><label>Business category</label><select name="industry">${['Building materials & hardware','Supermarket & general shop','Pharmacy','Fashion & boutique','Electronics','Wholesale & distribution','Restaurant & café','Hotel & hospitality','Other'].map(x=>`<option ${b.industry===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Currency</label><select name="currency"><option value="NGN" ${b.currency==='NGN'?'selected':''}>Nigerian Naira (₦)</option><option value="USD">US Dollar ($)</option><option value="GHS">Ghanaian Cedi</option><option value="GBP">British Pound</option></select></div><button class="btn">Save settings</button></form><div class="notice">Prototype storage: this browser keeps your workspace in local storage. Data does not automatically sync across devices or users. Set up a secure backend before using this for live business operations.</div><button class="btn danger" onclick="if(confirm('This will erase this browser\\'s LAZIZ data. Download exports first. Continue?')){localStorage.removeItem(key);localStorage.removeItem(sessionKey);location.reload()}">Reset this browser's LAZIZ data</button></div>`;$('#settingsform').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);b.name=f.get('name');b.industry=f.get('industry');b.currency=f.get('currency');save();toast('Settings saved');settings()}}
+function settings(){let b=biz();$('#main').innerHTML=head('Business settings','Manage your workspace details.')+`<div class="panel" style="max-width:650px"><h3>Business profile</h3><form id="settingsform"><div class="field"><label>Business name</label><input name="name" value="${esc(b.name)}" required></div><div class="field"><label>Business category</label><select name="industry">${['Building materials & hardware','Supermarket & general shop','Pharmacy','Fashion & boutique','Electronics','Wholesale & distribution','Restaurant & café','Hotel & hospitality','Other'].map(x=>`<option ${b.industry===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Currency</label><select name="currency"><option value="NGN" ${b.currency==='NGN'?'selected':''}>Nigerian Naira (₦)</option><option value="USD">US Dollar ($)</option><option value="GHS">Ghanaian Cedi</option><option value="GBP">British Pound</option></select></div><button class="btn">Save settings</button></form><button class="btn danger" onclick="if(confirm('This will erase this browser\\'s LAZIZ data. Download exports first. Continue?')){localStorage.removeItem(key);localStorage.removeItem(sessionKey);location.reload()}">Reset this browser's LAZIZ data</button></div>`;$('#settingsform').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);b.name=f.get('name');b.industry=f.get('industry');b.currency=f.get('currency');save();toast('Settings saved');settings()}}
 function modal(html){$('#modalroot').innerHTML=`<div class="modal-back" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}
 function closeModal(){$('#modalroot').innerHTML=''}
 function toast(msg){$('#toastroot').innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>$('#toastroot').innerHTML='',2600)}
 $('#year').textContent=new Date().getFullYear();
-let saved=localStorage.getItem(sessionKey);if(saved){let u=db.users.find(x=>x.id===saved);if(u){current=u;openApp()}}
-</script> 
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 window.LAZIZ_CLOUD_ERROR = 'No error detected yet';
-
 window.addEventListener('error', function(e) {
   window.LAZIZ_CLOUD_ERROR =
     (e.message || 'Unknown JavaScript error') +
@@ -126,21 +126,16 @@ window.addEventListener('error', function(e) {
     ' | Line: ' + (e.lineno || 'unknown');
 });
 </script>
-
 <script src="cloud-integration.js"></script>
-
 <script>
 window.addEventListener('load', function() {
   const report = document.createElement('div');
-
   report.style.cssText =
     'position:fixed;bottom:10px;left:10px;right:10px;z-index:99999;background:#10251e;color:white;padding:15px;border-radius:10px;font-size:12px;line-height:2;overflow-wrap:anywhere';
-
   report.innerHTML =
     '<b>LAZIZ CLOUD DIAGNOSTIC</b><br>' +
     'Auth function: ' + typeof window.authForm + '<br>' +
     'Cloud error: ' + window.LAZIZ_CLOUD_ERROR;
-
   document.body.appendChild(report);
 });
 </script>
