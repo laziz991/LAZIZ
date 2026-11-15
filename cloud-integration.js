@@ -21,7 +21,38 @@
   window.lazizSupabase=sb;
 
   let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
+let salesChannel = null;
+let salesChannelBusinessId = null;
+   function startSalesRealtime(){
+  if(!cloudBusinessId)return;
 
+  if(salesChannel && salesChannelBusinessId===cloudBusinessId)return;
+
+  if(salesChannel)sb.removeChannel(salesChannel);
+
+  salesChannelBusinessId=cloudBusinessId;
+
+  salesChannel=sb.channel('laziz-sales-'+cloudBusinessId)
+    .on('postgres_changes',{
+      event:'*',
+      schema:'public',
+      table:'sales',
+      filter:'business_id=eq.'+cloudBusinessId
+    },async payload=>{
+      const activePage=document.querySelector('.navbtn.active[data-page]')?.dataset.page||'dashboard';
+
+      try{
+        await loadCloudData();
+
+        if(activePage!=='dashboard')navigate(activePage);
+
+        toast('Cashier transaction received');
+      }catch(err){
+        console.error('Live sales update failed:',err);
+      }
+    })
+    .subscribe();
+   }
   const uid=()=>crypto.randomUUID();
 
   const fail=e=>{
@@ -538,9 +569,9 @@
     current=user;
 
     localStorage.setItem('laziz_cloud_business',cloudBusinessId);
-
-    show('app');
-    openApp();
+show('app');
+openApp();
+startSalesRealtime();
   }
 
   window.openApp=function(){
