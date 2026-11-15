@@ -246,14 +246,12 @@
           email,
           password:adminPassword,
           options:{
-            data:{
-              full_name:owner
-            },
-            emailRedirectTo:'https://laziz991.github.io/LAZIZ/'
-              ?undefined
-              :location.origin
-          }
-        });
+  data:{
+    full_name:owner
+  },
+  emailRedirectTo:'https://laziz991.github.io/LAZIZ/'
+}
+});
 
         if(error)throw error;
 
