@@ -155,7 +155,17 @@ function getCached(){try{return JSON.parse(localStorage.getItem(CACHE)||'null')}
 function cacheCatalog(){localStorage.setItem(CACHE,JSON.stringify({businessId,businessName,products,updatedAt:new Date().toISOString()}))}
 function say(message,kind=''){$('#feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
 function loginMessage(message,kind='error'){$('#login-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
-function registerMessage(message,kind='error'){$('#register-feedback').innerHTML=`<div class="receipt ${kind}">${esc(message)}</div>`}
+function registerMessage(message,kind='error'){
+  let readable='';
+  if(typeof message==='string') readable=message;
+  else if(message?.message) readable=String(message.message);
+  else if(message?.error) readable=typeof message.error==='string'?message.error:JSON.stringify(message.error);
+  else {
+    try{readable=JSON.stringify(message)}catch(e){readable=String(message)}
+  }
+  $('#register-feedback').innerHTML=`<div class="receipt ${kind}">${esc(readable||'Unknown registration error')}</div>`;
+}
+
 function updateStatus(){$('#connection').textContent=(navigator.onLine?'Online':'Offline')+' · LAZIZ staff counter'}
 function updateQueueNote(){$('#queue-note').textContent=pending.length?pending.length+' offline sale(s) waiting to sync. Do not clear this browser data.':'No pending offline sales.'}
 
