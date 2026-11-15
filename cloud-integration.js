@@ -20,66 +20,10 @@
 
   window.lazizSupabase=sb;
 
-let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
-let salesChannel=null;
-let salesChannelBusinessId=null;
+  let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
+  let salesChannel=null;
+  let salesChannelBusinessId=null;
 
-function startSalesRealtime(){
-  if(!cloudBusinessId)return;
-
-  if(salesChannel && salesChannelBusinessId===cloudBusinessId)return;
-
-  if(salesChannel)sb.removeChannel(salesChannel);
-
-  salesChannelBusinessId=cloudBusinessId;
-
-  salesChannel=sb.channel('laziz-sales-'+cloudBusinessId)
-    .on('postgres_changes',{
-      event:'INSERT',
-      schema:'public',
-      table:'sales',
-      filter:'business_id=eq.'+cloudBusinessId
-    },async()=>{
-      try{
-        await loadCloudData();
-      }catch(err){
-        console.error('LAZIZ live sales update failed:',err);
-      }
-    })
-    .subscribe();
-}
-let salesChannel = null;
-let salesChannelBusinessId = null;
-   function startSalesRealtime(){
-  if(!cloudBusinessId)return;
-
-  if(salesChannel && salesChannelBusinessId===cloudBusinessId)return;
-
-  if(salesChannel)sb.removeChannel(salesChannel);
-
-  salesChannelBusinessId=cloudBusinessId;
-
-  salesChannel=sb.channel('laziz-sales-'+cloudBusinessId)
-    .on('postgres_changes',{
-      event:'*',
-      schema:'public',
-      table:'sales',
-      filter:'business_id=eq.'+cloudBusinessId
-    },async payload=>{
-      const activePage=document.querySelector('.navbtn.active[data-page]')?.dataset.page||'dashboard';
-
-      try{
-        await loadCloudData();
-
-        if(activePage!=='dashboard')navigate(activePage);
-
-        toast('Cashier transaction received');
-      }catch(err){
-        console.error('Live sales update failed:',err);
-      }
-    })
-    .subscribe();
-   }
   const uid=()=>crypto.randomUUID();
 
   const fail=e=>{
@@ -452,6 +396,44 @@ let salesChannelBusinessId = null;
     await loadCloudData();
   }
 
+  // Listen for new sales belonging to this business.
+  function startSalesRealtime(){
+    if(!cloudBusinessId)return;
+
+    if(salesChannel && salesChannelBusinessId===cloudBusinessId)return;
+
+    if(salesChannel)sb.removeChannel(salesChannel);
+
+    salesChannelBusinessId=cloudBusinessId;
+
+    salesChannel=sb.channel('laziz-sales-'+cloudBusinessId)
+      .on('postgres_changes',{
+        event:'INSERT',
+        schema:'public',
+        table:'sales',
+        filter:'business_id=eq.'+cloudBusinessId
+      },async()=>{
+        const activePage=document.querySelector('.navbtn.active[data-page]')?.dataset.page||'dashboard';
+
+        try{
+          await loadCloudData();
+
+          if(activePage!=='dashboard'){
+            navigate(activePage);
+          }
+
+          toast('Cashier transaction received');
+        }catch(err){
+          console.error('LAZIZ live sales update failed:',err);
+        }
+      })
+      .subscribe(status=>{
+        if(status==='CHANNEL_ERROR'){
+          console.error('LAZIZ sales realtime subscription failed.');
+        }
+      });
+  }
+
   async function loadCloudData(){
     const [
       businessRes,
@@ -596,9 +578,10 @@ let salesChannelBusinessId = null;
     current=user;
 
     localStorage.setItem('laziz_cloud_business',cloudBusinessId);
-show('app');
-openApp();
-startSalesRealtime();
+
+    show('app');
+    openApp();
+    startSalesRealtime();
   }
 
   window.openApp=function(){
@@ -614,6 +597,12 @@ startSalesRealtime();
 
   window.logout=async function(){
     await sb.auth.signOut();
+
+    if(salesChannel){
+      await sb.removeChannel(salesChannel);
+      salesChannel=null;
+      salesChannelBusinessId=null;
+    }
 
     cloudUser=null;
     cloudBusinessId=null;
@@ -1092,6 +1081,12 @@ startSalesRealtime();
 
   sb.auth.onAuthStateChange((event,session)=>{
     if(event==='SIGNED_OUT'){
+      if(salesChannel){
+        sb.removeChannel(salesChannel);
+        salesChannel=null;
+        salesChannelBusinessId=null;
+      }
+
       cloudUser=null;
       cloudBusinessId=null;
       cloudRole=null;
