@@ -1,6 +1,6 @@
 
-/* LAZIZ cloud integration phase 1: Supabase Auth, workspace, catalogue and online checkout.
-   Remaining modules are intentionally not enabled for live use until their cloud APIs are implemented. */
+/* LAZIZ cloud integration: Supabase Auth, six-digit login code,
+   workspace, catalogue and online checkout. */
 (function(){
   const cfg=window.LAZIZ_SUPABASE_CONFIG;
 
@@ -23,6 +23,7 @@
   let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
   let salesChannel=null;
   let salesChannelBusinessId=null;
+  let recoveryEmail='';
 
   const uid=()=>crypto.randomUUID();
 
@@ -35,20 +36,26 @@
     return `<div class="notice">${esc(msg)}</div>`;
   }
 
-  let recoveryEmail='';
+  function validCode(code){
+    return /^[0-9]{6}$/.test(String(code||''));
+  }
+
+  function getEmail(value){
+    return String(value||'').trim().toLowerCase();
+  }
 
   window.authForm=function(mode){
 
     if(mode==='forgot'){
       $('#authbox').innerHTML=`
-        <h2>Reset your password</h2>
-        <p class="muted">Enter the email address on your LAZIZ account. We will send a six-digit verification code.</p>
+        <h2>Forgot your login code?</h2>
+        <p class="muted">Enter your LAZIZ email address. We will send you a six-digit verification code.</p>
         <form id="cloudforgot">
           <div class="field">
             <label>Email address</label>
             <input name="email" type="email" required autocomplete="email">
           </div>
-          <button class="btn" ${busy?'disabled':''}>Send reset code</button>
+          <button class="btn" ${busy?'disabled':''}>Send verification code</button>
         </form>
         <div class="auth-switch">
           <a onclick="authForm('login')">Back to sign in</a>
@@ -65,7 +72,7 @@
 
         try{
           const f=new FormData(e.target);
-          recoveryEmail=String(f.get('email')).trim().toLowerCase();
+          recoveryEmail=getEmail(f.get('email'));
 
           const {error}=await sb.auth.resetPasswordForEmail(recoveryEmail);
           if(error)throw error;
@@ -74,7 +81,7 @@
         }catch(err){
           fail(err);
           button.disabled=false;
-          button.textContent='Send reset code';
+          button.textContent='Send verification code';
         }finally{
           busy=false;
         }
@@ -98,23 +105,26 @@
             <input name="email" type="email" required autocomplete="email">
           </div>
           <div class="field">
-            <label>Password</label>
-            <input name="password" type="password" required autocomplete="current-password">
+            <label>Six-digit login code</label>
+            <input name="code" type="password" inputmode="numeric"
+              pattern="[0-9]{6}" minlength="6" maxlength="6"
+              required autocomplete="current-password"
+              placeholder="Enter your six-digit code">
           </div>
           <button class="btn" ${busy?'disabled':''}>Sign in</button>
         </form>
         <div class="auth-switch">
-          <a onclick="authForm('forgot')">Forgot password?</a>
+          <a onclick="authForm('forgot')">Forgot login code?</a>
         </div>
         <div class="auth-switch">
           New to LAZIZ?
           <a onclick="authForm('register')">Create a business account</a>
         </div>
-        ${authNotice('Your account is securely managed by Supabase. Use the email and password you registered with.')}`;
+        ${authNotice('Sign in with your email address and six-digit login code.')}`;
     }else{
       $('#authbox').innerHTML=`
         <h2>Create your LAZIZ account</h2>
-        <p class="muted">Register your account first. Then verify your email and create your business workspace.</p>
+        <p class="muted">Register your account and choose your own six-digit login code.</p>
         <form id="cloudregister">
           <div class="field">
             <label>Your full name</label>
@@ -125,8 +135,16 @@
             <input name="email" type="email" required autocomplete="email">
           </div>
           <div class="field">
-            <label>Password (at least 8 characters)</label>
-            <input name="password" type="password" minlength="8" required autocomplete="new-password">
+            <label>Create six-digit login code</label>
+            <input name="code" type="password" inputmode="numeric"
+              pattern="[0-9]{6}" minlength="6" maxlength="6"
+              required autocomplete="new-password" placeholder="000000">
+          </div>
+          <div class="field">
+            <label>Confirm six-digit login code</label>
+            <input name="confirm" type="password" inputmode="numeric"
+              pattern="[0-9]{6}" minlength="6" maxlength="6"
+              required autocomplete="new-password" placeholder="000000">
           </div>
           <button class="btn" ${busy?'disabled':''}>Create account</button>
         </form>
@@ -134,21 +152,29 @@
           Already registered?
           <a onclick="authForm('login')">Sign in</a>
         </div>
-        ${authNotice('Your account is securely managed by Supabase. Your business data is private to your business and its invited members.')}`;
+        ${authNotice('Your business information remains protected by Supabase account security and workspace permissions.')}`;
     }
 
     $('#cloudlogin')?.addEventListener('submit',async e=>{
       e.preventDefault();
       if(busy)return;
 
+      const f=new FormData(e.target);
+      const email=getEmail(f.get('email'));
+      const code=String(f.get('code')||'').trim();
+
+      if(!validCode(code))
+        return toast('Enter your six-digit login code.');
+
       busy=true;
+      const button=e.target.querySelector('button');
+      button.disabled=true;
+      button.textContent='SIGNING IN…';
 
       try{
-        const f=new FormData(e.target);
-
         const {error}=await sb.auth.signInWithPassword({
-          email:String(f.get('email')).trim().toLowerCase(),
-          password:f.get('password')
+          email,
+          password:code
         });
 
         if(error)throw error;
@@ -156,6 +182,8 @@
         await bootWorkspace();
       }catch(err){
         fail(err);
+        button.disabled=false;
+        button.textContent='Sign in';
       }finally{
         busy=false;
       }
@@ -165,14 +193,26 @@
       e.preventDefault();
       if(busy)return;
 
+      const f=new FormData(e.target);
+      const email=getEmail(f.get('email'));
+      const code=String(f.get('code')||'').trim();
+      const confirmCode=String(f.get('confirm')||'').trim();
+
+      if(!validCode(code))
+        return toast('Your login code must contain exactly six digits.');
+
+      if(code!==confirmCode)
+        return toast('The login codes do not match.');
+
       busy=true;
+      const button=e.target.querySelector('button');
+      button.disabled=true;
+      button.textContent='CREATING ACCOUNT…';
 
       try{
-        const f=new FormData(e.target);
-
         const {data,error}=await sb.auth.signUp({
-          email:String(f.get('email')).trim().toLowerCase(),
-          password:f.get('password'),
+          email,
+          password:code,
           options:{
             data:{full_name:String(f.get('owner')).trim()},
             emailRedirectTo:location.origin==='null'?undefined:location.origin
@@ -186,11 +226,13 @@
         }else{
           $('#authbox').innerHTML=`
             <h2>Check your email</h2>
-            <p>We sent a confirmation email to <b>${esc(f.get('email'))}</b>. Confirm your address, then return here and sign in.</p>
+            <p>We sent a confirmation email to <b>${esc(email)}</b>. Confirm your email address, then return here and sign in using your six-digit login code.</p>
             <button class="btn" onclick="authForm('login')">Go to sign in</button>`;
         }
       }catch(err){
         fail(err);
+        button.disabled=false;
+        button.textContent='Create account';
       }finally{
         busy=false;
       }
@@ -199,12 +241,14 @@
 
   window.showRecoveryCode=function(){
     $('#authbox').innerHTML=`
-      <h2>Enter your reset code</h2>
+      <h2>Enter your verification code</h2>
       <p class="muted">We sent a six-digit code to <b>${esc(recoveryEmail)}</b>. Enter it below.</p>
       <form id="cloudverifyrecovery">
         <div class="field">
-          <label>Six-digit code</label>
-          <input name="token" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required placeholder="000000">
+          <label>Six-digit verification code</label>
+          <input name="token" type="text" inputmode="numeric"
+            autocomplete="one-time-code" pattern="[0-9]{6}"
+            minlength="6" maxlength="6" required placeholder="000000">
         </div>
         <button class="btn">Verify code</button>
       </form>
@@ -218,14 +262,16 @@
       if(busy)return;
 
       busy=true;
-
       const button=e.target.querySelector('button');
       button.disabled=true;
       button.textContent='VERIFYING…';
 
       try{
         const f=new FormData(e.target);
-        const token=String(f.get('token')).trim();
+        const token=String(f.get('token')||'').trim();
+
+        if(!validCode(token))
+          throw new Error('Enter the six-digit verification code.');
 
         const {error}=await sb.auth.verifyOtp({
           email:recoveryEmail,
@@ -248,18 +294,22 @@
 
   window.showNewPassword=function(){
     $('#authbox').innerHTML=`
-      <h2>Create a new password</h2>
-      <p class="muted">Choose a new password for your LAZIZ account.</p>
+      <h2>Create a new login code</h2>
+      <p class="muted">Choose a new six-digit code for your LAZIZ account.</p>
       <form id="cloudnewpassword">
         <div class="field">
-          <label>New password</label>
-          <input name="password" type="password" minlength="8" required autocomplete="new-password">
+          <label>New six-digit login code</label>
+          <input name="code" type="password" inputmode="numeric"
+            pattern="[0-9]{6}" minlength="6" maxlength="6"
+            required autocomplete="new-password" placeholder="000000">
         </div>
         <div class="field">
-          <label>Confirm new password</label>
-          <input name="confirm" type="password" minlength="8" required autocomplete="new-password">
+          <label>Confirm new login code</label>
+          <input name="confirm" type="password" inputmode="numeric"
+            pattern="[0-9]{6}" minlength="6" maxlength="6"
+            required autocomplete="new-password" placeholder="000000">
         </div>
-        <button class="btn">Save new password</button>
+        <button class="btn">Save new login code</button>
       </form>`;
 
     $('#cloudnewpassword').onsubmit=async e=>{
@@ -267,36 +317,35 @@
       if(busy)return;
 
       const f=new FormData(e.target);
-      const password=String(f.get('password'));
-      const confirmPassword=String(f.get('confirm'));
+      const code=String(f.get('code')||'').trim();
+      const confirmCode=String(f.get('confirm')||'').trim();
 
-      if(password.length<8)
-        return toast('Your password must be at least 8 characters.');
+      if(!validCode(code))
+        return toast('Your login code must contain exactly six digits.');
 
-      if(password!==confirmPassword)
-        return toast('The passwords do not match.');
+      if(code!==confirmCode)
+        return toast('The login codes do not match.');
 
       busy=true;
-
       const button=e.target.querySelector('button');
       button.disabled=true;
       button.textContent='SAVING…';
 
       try{
-        const {error}=await sb.auth.updateUser({password});
+        const {error}=await sb.auth.updateUser({password:code});
         if(error)throw error;
 
         await sb.auth.signOut();
         recoveryEmail='';
 
         $('#authbox').innerHTML=`
-          <h2>Password updated</h2>
-          <p class="muted">Your password has been changed successfully. You can now sign in with your new password.</p>
+          <h2>Login code updated</h2>
+          <p class="muted">Your six-digit login code has been changed successfully. You can now sign in with your email address and new code.</p>
           <button class="btn" onclick="authForm('login')">Return to sign in</button>`;
       }catch(err){
         fail(err);
         button.disabled=false;
-        button.textContent='Save new password';
+        button.textContent='Save new login code';
       }finally{
         busy=false;
       }
@@ -365,7 +414,6 @@
         if(busy)return;
 
         busy=true;
-
         try{
           const f=new FormData(e.target);
 
@@ -396,7 +444,6 @@
     await loadCloudData();
   }
 
-  // Listen for new sales belonging to this business.
   function startSalesRealtime(){
     if(!cloudBusinessId)return;
 
@@ -684,6 +731,9 @@
   };
 
   window.productModal=function(id){
+    if(cloudRole!=='owner')
+      return toast('Only the business owner can add or edit products.');
+
     const p=biz().products.find(x=>x.id===id)||{
       name:'',
       sku:'',
@@ -741,7 +791,6 @@
 
     $('#cloudproductform').onsubmit=async e=>{
       e.preventDefault();
-
       if(busy)return;
 
       const f=new FormData(e.target);
@@ -760,6 +809,7 @@
         updated_at:new Date().toISOString()
       };
 
+      busy=true;
       try{
         let old=Number(p.qty||0),res;
 
@@ -789,18 +839,21 @@
         }
 
         closeModal();
-
         await loadCloudData();
         navigate('products');
-
         toast('Product saved to cloud');
       }catch(err){
         fail(err);
+      }finally{
+        busy=false;
       }
     };
   };
 
   window.deleteProduct=async function(id){
+    if(cloudRole!=='owner')
+      return toast('Only the business owner can deactivate products.');
+
     if(!confirm('Deactivate this product? Its historical sale records will be kept.'))return;
 
     const {error}=await sb.from('products')
@@ -812,7 +865,6 @@
 
     await loadCloudData();
     navigate('products');
-
     toast('Product deactivated');
   };
 
@@ -866,7 +918,6 @@
 
       await loadCloudData();
       navigate('settings');
-
       toast('Business profile updated');
     };
 
@@ -897,7 +948,6 @@
           throw new Error(data?.error||'The server did not return a connection code.');
 
         output.style.display='block';
-
         output.textContent='BUSINESS CONNECTION CODE: '+data.connection_code+' — Copy this code and give it to your authorised salesgirls. It will not be shown again after you leave this page.';
 
         toast('New business connection code generated.');
@@ -911,7 +961,6 @@
     });
   };
 
-  // Cloud-backed customer and supplier records.
   window.personModal=function(type){
     if(!['customers','suppliers'].includes(type))return;
 
@@ -944,7 +993,6 @@
 
     $('#cloudpersonform').onsubmit=async e=>{
       e.preventDefault();
-
       if(busy)return;
 
       const f=new FormData(e.target);
@@ -957,18 +1005,19 @@
         notes:String(f.get('notes')).trim()||null
       };
 
+      busy=true;
       try{
         const {error}=await sb.from(type).insert(payload);
         if(error)throw error;
 
         closeModal();
-
         await loadCloudData();
         navigate(type);
-
         toast(label+' saved to cloud');
       }catch(err){
         fail(err);
+      }finally{
+        busy=false;
       }
     };
   };
@@ -987,14 +1036,12 @@
 
       await loadCloudData();
       navigate(type);
-
       toast('Record deleted');
     }catch(err){
       fail(err);
     }
   };
 
-  // Cloud-backed expense recording. Supabase RLS limits this to owners/managers.
   window.expenseModal=function(){
     modal(`
       <h2>Record expense</h2>
@@ -1036,7 +1083,6 @@
 
     $('#cloudexpenseform').onsubmit=async e=>{
       e.preventDefault();
-
       if(busy)return;
 
       const f=new FormData(e.target);
@@ -1055,16 +1101,13 @@
       };
 
       busy=true;
-
       try{
         const {error}=await sb.from('expenses').insert(payload);
         if(error)throw error;
 
         closeModal();
-
         await loadCloudData();
         navigate('expenses');
-
         toast('Expense saved to cloud');
       }catch(err){
         fail(err);
@@ -1074,7 +1117,6 @@
     };
   };
 
-  // Refunds remain disabled until an atomic stock-return workflow is installed.
   window.refundSale=function(){
     toast('Refunds are not enabled yet. No refund or stock change was made.');
   };
