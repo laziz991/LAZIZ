@@ -1,6 +1,6 @@
 
-/* LAZIZ cloud integration: Supabase Auth, six-digit login code,
-   workspace, catalogue and online checkout. */
+/* LAZIZ cloud integration: Supabase email/password authentication,
+   password recovery, workspace, catalogue and online checkout. */
 (function(){
   const cfg=window.LAZIZ_SUPABASE_CONFIG;
 
@@ -23,7 +23,7 @@
   let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
   let salesChannel=null;
   let salesChannelBusinessId=null;
-  let recoveryEmail='';
+  let recoveryMode=false;
 
   const uid=()=>crypto.randomUUID();
 
@@ -36,26 +36,26 @@
     return `<div class="notice">${esc(msg)}</div>`;
   }
 
-  function validCode(code){
-    return /^[0-9]{6}$/.test(String(code||''));
-  }
-
   function getEmail(value){
     return String(value||'').trim().toLowerCase();
+  }
+
+  function passwordValid(password){
+    return String(password||'').length>=8;
   }
 
   window.authForm=function(mode){
 
     if(mode==='forgot'){
       $('#authbox').innerHTML=`
-        <h2>Forgot your login code?</h2>
-        <p class="muted">Enter your LAZIZ email address. We will send you a six-digit verification code.</p>
+        <h2>Forgot your password?</h2>
+        <p class="muted">Enter your LAZIZ email address. We will send you a password reset link.</p>
         <form id="cloudforgot">
           <div class="field">
             <label>Email address</label>
             <input name="email" type="email" required autocomplete="email">
           </div>
-          <button class="btn" ${busy?'disabled':''}>Send verification code</button>
+          <button class="btn" ${busy?'disabled':''}>Send reset link</button>
         </form>
         <div class="auth-switch">
           <a onclick="authForm('login')">Back to sign in</a>
@@ -68,20 +68,29 @@
         busy=true;
         const button=e.target.querySelector('button');
         button.disabled=true;
-        button.textContent='SENDING CODE…';
+        button.textContent='SENDING…';
 
         try{
           const f=new FormData(e.target);
-          recoveryEmail=getEmail(f.get('email'));
+          const email=getEmail(f.get('email'));
 
-          const {error}=await sb.auth.resetPasswordForEmail(recoveryEmail);
+          const redirectTo=location.origin+location.pathname;
+
+          const {error}=await sb.auth.resetPasswordForEmail(email,{
+            redirectTo
+          });
+
           if(error)throw error;
 
-          window.showRecoveryCode();
+          $('#authbox').innerHTML=`
+            <h2>Check your email</h2>
+            <p class="muted">If an account exists for <b>${esc(email)}</b>, Supabase will send a password reset link.</p>
+            <p class="muted">Open the link in this browser to create your new password.</p>
+            <button class="btn" onclick="authForm('login')">Return to sign in</button>`;
         }catch(err){
           fail(err);
           button.disabled=false;
-          button.textContent='Send verification code';
+          button.textContent='Send reset link';
         }finally{
           busy=false;
         }
@@ -90,8 +99,8 @@
       return;
     }
 
-    if(mode==='recovery-code'){
-      window.showRecoveryCode();
+    if(mode==='reset-password'){
+      window.showNewPassword();
       return;
     }
 
@@ -105,26 +114,24 @@
             <input name="email" type="email" required autocomplete="email">
           </div>
           <div class="field">
-            <label>Six-digit login code</label>
-            <input name="code" type="password" inputmode="numeric"
-              pattern="[0-9]{6}" minlength="6" maxlength="6"
-              required autocomplete="current-password"
-              placeholder="Enter your six-digit code">
+            <label>Password</label>
+            <input name="password" type="password" required
+              autocomplete="current-password" placeholder="Enter your password">
           </div>
           <button class="btn" ${busy?'disabled':''}>Sign in</button>
         </form>
         <div class="auth-switch">
-          <a onclick="authForm('forgot')">Forgot login code?</a>
+          <a onclick="authForm('forgot')">Forgot password?</a>
         </div>
         <div class="auth-switch">
           New to LAZIZ?
           <a onclick="authForm('register')">Create a business account</a>
         </div>
-        ${authNotice('Sign in with your email address and six-digit login code.')}`;
+        ${authNotice('Sign in with your email address and password.')}`;
     }else{
       $('#authbox').innerHTML=`
         <h2>Create your LAZIZ account</h2>
-        <p class="muted">Register your account and choose your own six-digit login code.</p>
+        <p class="muted">Register your account using your email address and a password.</p>
         <form id="cloudregister">
           <div class="field">
             <label>Your full name</label>
@@ -135,16 +142,14 @@
             <input name="email" type="email" required autocomplete="email">
           </div>
           <div class="field">
-            <label>Create six-digit login code</label>
-            <input name="code" type="password" inputmode="numeric"
-              pattern="[0-9]{6}" minlength="6" maxlength="6"
-              required autocomplete="new-password" placeholder="000000">
+            <label>Create password</label>
+            <input name="password" type="password" minlength="8"
+              required autocomplete="new-password" placeholder="At least 8 characters">
           </div>
           <div class="field">
-            <label>Confirm six-digit login code</label>
-            <input name="confirm" type="password" inputmode="numeric"
-              pattern="[0-9]{6}" minlength="6" maxlength="6"
-              required autocomplete="new-password" placeholder="000000">
+            <label>Confirm password</label>
+            <input name="confirm" type="password" minlength="8"
+              required autocomplete="new-password" placeholder="Enter password again">
           </div>
           <button class="btn" ${busy?'disabled':''}>Create account</button>
         </form>
@@ -161,10 +166,9 @@
 
       const f=new FormData(e.target);
       const email=getEmail(f.get('email'));
-      const code=String(f.get('code')||'').trim();
+      const password=String(f.get('password')||'');
 
-      if(!validCode(code))
-        return toast('Enter your six-digit login code.');
+      if(!password)return toast('Enter your password.');
 
       busy=true;
       const button=e.target.querySelector('button');
@@ -174,11 +178,12 @@
       try{
         const {error}=await sb.auth.signInWithPassword({
           email,
-          password:code
+          password
         });
 
         if(error)throw error;
 
+        recoveryMode=false;
         await bootWorkspace();
       }catch(err){
         fail(err);
@@ -195,14 +200,14 @@
 
       const f=new FormData(e.target);
       const email=getEmail(f.get('email'));
-      const code=String(f.get('code')||'').trim();
-      const confirmCode=String(f.get('confirm')||'').trim();
+      const password=String(f.get('password')||'');
+      const confirmPassword=String(f.get('confirm')||'');
 
-      if(!validCode(code))
-        return toast('Your login code must contain exactly six digits.');
+      if(!passwordValid(password))
+        return toast('Your password must contain at least 8 characters.');
 
-      if(code!==confirmCode)
-        return toast('The login codes do not match.');
+      if(password!==confirmPassword)
+        return toast('The passwords do not match.');
 
       busy=true;
       const button=e.target.querySelector('button');
@@ -212,10 +217,10 @@
       try{
         const {data,error}=await sb.auth.signUp({
           email,
-          password:code,
+          password,
           options:{
             data:{full_name:String(f.get('owner')).trim()},
-            emailRedirectTo:location.origin==='null'?undefined:location.origin
+            emailRedirectTo:location.origin+location.pathname
           }
         });
 
@@ -226,7 +231,7 @@
         }else{
           $('#authbox').innerHTML=`
             <h2>Check your email</h2>
-            <p>We sent a confirmation email to <b>${esc(email)}</b>. Confirm your email address, then return here and sign in using your six-digit login code.</p>
+            <p>We sent a confirmation email to <b>${esc(email)}</b>. Confirm your email address, then return here and sign in using your email and password.</p>
             <button class="btn" onclick="authForm('login')">Go to sign in</button>`;
         }
       }catch(err){
@@ -239,77 +244,22 @@
     });
   };
 
-  window.showRecoveryCode=function(){
-    $('#authbox').innerHTML=`
-      <h2>Enter your verification code</h2>
-      <p class="muted">We sent a six-digit code to <b>${esc(recoveryEmail)}</b>. Enter it below.</p>
-      <form id="cloudverifyrecovery">
-        <div class="field">
-          <label>Six-digit verification code</label>
-          <input name="token" type="text" inputmode="numeric"
-            autocomplete="one-time-code" pattern="[0-9]{6}"
-            minlength="6" maxlength="6" required placeholder="000000">
-        </div>
-        <button class="btn">Verify code</button>
-      </form>
-      <div class="auth-switch">
-        <a onclick="authForm('forgot')">Send another code</a> ·
-        <a onclick="authForm('login')">Back to sign in</a>
-      </div>`;
-
-    $('#cloudverifyrecovery').onsubmit=async e=>{
-      e.preventDefault();
-      if(busy)return;
-
-      busy=true;
-      const button=e.target.querySelector('button');
-      button.disabled=true;
-      button.textContent='VERIFYING…';
-
-      try{
-        const f=new FormData(e.target);
-        const token=String(f.get('token')||'').trim();
-
-        if(!validCode(token))
-          throw new Error('Enter the six-digit verification code.');
-
-        const {error}=await sb.auth.verifyOtp({
-          email:recoveryEmail,
-          token,
-          type:'recovery'
-        });
-
-        if(error)throw error;
-
-        window.showNewPassword();
-      }catch(err){
-        fail(err);
-        button.disabled=false;
-        button.textContent='Verify code';
-      }finally{
-        busy=false;
-      }
-    };
-  };
-
   window.showNewPassword=function(){
     $('#authbox').innerHTML=`
-      <h2>Create a new login code</h2>
-      <p class="muted">Choose a new six-digit code for your LAZIZ account.</p>
+      <h2>Create a new password</h2>
+      <p class="muted">Choose a new password for your LAZIZ account.</p>
       <form id="cloudnewpassword">
         <div class="field">
-          <label>New six-digit login code</label>
-          <input name="code" type="password" inputmode="numeric"
-            pattern="[0-9]{6}" minlength="6" maxlength="6"
-            required autocomplete="new-password" placeholder="000000">
+          <label>New password</label>
+          <input name="password" type="password" minlength="8"
+            required autocomplete="new-password" placeholder="At least 8 characters">
         </div>
         <div class="field">
-          <label>Confirm new login code</label>
-          <input name="confirm" type="password" inputmode="numeric"
-            pattern="[0-9]{6}" minlength="6" maxlength="6"
-            required autocomplete="new-password" placeholder="000000">
+          <label>Confirm new password</label>
+          <input name="confirm" type="password" minlength="8"
+            required autocomplete="new-password" placeholder="Enter password again">
         </div>
-        <button class="btn">Save new login code</button>
+        <button class="btn">Save new password</button>
       </form>`;
 
     $('#cloudnewpassword').onsubmit=async e=>{
@@ -317,14 +267,14 @@
       if(busy)return;
 
       const f=new FormData(e.target);
-      const code=String(f.get('code')||'').trim();
-      const confirmCode=String(f.get('confirm')||'').trim();
+      const password=String(f.get('password')||'');
+      const confirmPassword=String(f.get('confirm')||'');
 
-      if(!validCode(code))
-        return toast('Your login code must contain exactly six digits.');
+      if(!passwordValid(password))
+        return toast('Your password must contain at least 8 characters.');
 
-      if(code!==confirmCode)
-        return toast('The login codes do not match.');
+      if(password!==confirmPassword)
+        return toast('The passwords do not match.');
 
       busy=true;
       const button=e.target.querySelector('button');
@@ -332,20 +282,20 @@
       button.textContent='SAVING…';
 
       try{
-        const {error}=await sb.auth.updateUser({password:code});
+        const {error}=await sb.auth.updateUser({password});
         if(error)throw error;
 
+        recoveryMode=false;
         await sb.auth.signOut();
-        recoveryEmail='';
 
         $('#authbox').innerHTML=`
-          <h2>Login code updated</h2>
-          <p class="muted">Your six-digit login code has been changed successfully. You can now sign in with your email address and new code.</p>
+          <h2>Password updated</h2>
+          <p class="muted">Your password has been changed successfully. You can now sign in with your email address and new password.</p>
           <button class="btn" onclick="authForm('login')">Return to sign in</button>`;
       }catch(err){
         fail(err);
         button.disabled=false;
-        button.textContent='Save new login code';
+        button.textContent='Save new password';
       }finally{
         busy=false;
       }
@@ -1122,7 +1072,16 @@
   };
 
   sb.auth.onAuthStateChange((event,session)=>{
-    if(event==='SIGNED_OUT'){
+    if(event==='PASSWORD_RECOVERY'){
+      recoveryMode=true;
+      setTimeout(()=>{
+        show('auth');
+        authForm('reset-password');
+      },0);
+      return;
+    }
+
+    if(event==='SIGNED_OUT' && !recoveryMode){
       if(salesChannel){
         sb.removeChannel(salesChannel);
         salesChannel=null;
