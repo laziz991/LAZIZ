@@ -20,7 +20,34 @@
 
   window.lazizSupabase=sb;
 
-  let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
+let cloudUser=null,cloudBusinessId=null,cloudRole=null,busy=false;
+let salesChannel=null;
+let salesChannelBusinessId=null;
+
+function startSalesRealtime(){
+  if(!cloudBusinessId)return;
+
+  if(salesChannel && salesChannelBusinessId===cloudBusinessId)return;
+
+  if(salesChannel)sb.removeChannel(salesChannel);
+
+  salesChannelBusinessId=cloudBusinessId;
+
+  salesChannel=sb.channel('laziz-sales-'+cloudBusinessId)
+    .on('postgres_changes',{
+      event:'INSERT',
+      schema:'public',
+      table:'sales',
+      filter:'business_id=eq.'+cloudBusinessId
+    },async()=>{
+      try{
+        await loadCloudData();
+      }catch(err){
+        console.error('LAZIZ live sales update failed:',err);
+      }
+    })
+    .subscribe();
+}
 let salesChannel = null;
 let salesChannelBusinessId = null;
    function startSalesRealtime(){
