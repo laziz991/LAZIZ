@@ -1,3 +1,4 @@
+
 /* LAZIZ cloud integration phase 1: Supabase Auth, workspace, catalogue and online checkout.
    Remaining modules are intentionally not enabled for live use until their cloud APIs are implemented. */
 (function(){
