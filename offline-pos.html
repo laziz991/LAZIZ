@@ -190,19 +190,35 @@ function initSupabase(){
 }
 
 /* Extract useful messages returned by Supabase Edge Functions */
+
+function errorToText(value){
+  if(value==null)return '';
+  if(typeof value==='string')return value;
+  if(typeof value==='object'){
+    if(value.message)return errorToText(value.message);
+    if(value.error_description)return errorToText(value.error_description);
+    if(value.details)return errorToText(value.details);
+    if(value.hint)return errorToText(value.hint);
+    try{return JSON.stringify(value)}catch(e){return 'Unknown server error'}
+  }
+  return String(value);
+}
+
 async function functionErrorMessage(error,data){
-  if(data?.error)return data.error;
+  if(data?.error)return errorToText(data.error);
   try{
     const response=error?.context;
     if(response){
       const copy=typeof response.clone==='function'?response.clone():response;
       const body=await copy.json();
-      if(body?.error)return body.error;
-      if(body?.message)return body.message;
+      if(body?.error)return errorToText(body.error);
+      if(body?.message)return errorToText(body.message);
+      return errorToText(body);
     }
   }catch(e){}
-  return error?.message||'The server request failed.';
+  return errorToText(error?.message)||errorToText(error)||'The server request failed.';
 }
+
 
 /* INDIVIDUAL STAFF REGISTRATION */
 async function registerStaff(){
