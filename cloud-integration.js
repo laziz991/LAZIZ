@@ -44,7 +44,7 @@
       password.length>=8 && password.length<=128;
   }
 
-  async function saveStaffPassword(businessId,password){
+  async function saveStaffPassword(businessId,password){sb.
     const {data,error}=await sb.functions.invoke('cashier-auth',{
       body:{
         action:'setup',
@@ -249,7 +249,7 @@
             data:{
               full_name:owner
             },
-            emailRedirectTo:location.origin==='null'
+            emailRedirectTo:'https://laziz991.github.io/LAZIZ/'
               ?undefined
               :location.origin
           }
