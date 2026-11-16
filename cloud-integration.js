@@ -44,7 +44,7 @@
       password.length>=8 && password.length<=128;
   }
 
-  async function saveStaffPassword(businessId,password){sb.
+  async function saveStaffPassword(businessId,password){
     const {data,error}=await sb.functions.invoke('cashier-auth',{
       body:{
         action:'setup',
