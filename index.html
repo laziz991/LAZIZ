@@ -966,7 +966,7 @@ function toggleSaleItems(id){
 }
 function products(){
   let b=biz();
-  $('#main').innerHTML=head('Products & inventory','Manage building materials, units, pricing and stock.','<button class="btn" onclick="productModal()">＋ Add product</button>')+
+  $('#main').innerHTML=head('Products & inventory','Manage building materials, units, pricing and stock.','<button class="btn secondary" onclick="downloadProductsPDF()">↓ Download PDF</button><button class="btn" onclick="productModal()">＋ Add product</button>')+
   `<div class="cards">
     ${stat('Catalogue items',b.products.length,'Products and materials')}
     ${stat('Stock units',b.products.reduce((a,p)=>a+Number(p.qty),0).toLocaleString(),'Total quantity across units')}
@@ -1000,6 +1000,79 @@ function productTable(items){
       <td><button class="btn secondary small" onclick="productModal('${p.id}')">Edit</button> <button class="btn danger small" onclick="deleteProduct('${p.id}')">Delete</button></td>
     </tr>`).join('')}</tbody>
   </table></div>`:'<div class="empty">No products found.</div>';
+}
+
+function downloadProductsPDF(){
+  const b=biz();
+  if(!b)return;
+  const items=(b.products||[]).slice().sort((a,c)=>String(a.name||'').localeCompare(String(c.name||'')));
+  const printWindow=window.open('','_blank');
+  if(!printWindow){
+    toast('Please allow pop-ups to download the products PDF');
+    return;
+  }
+
+  const rows=items.map((p,index)=>`<tr>
+    <td class="number">${index+1}</td>
+    <td class="product">${esc(p.name||'—')}</td>
+    <td>${esc(p.sku||'—')}</td>
+    <td>${esc(p.category||'—')}</td>
+    <td>${esc(p.unit||'—')}</td>
+    <td class="amount">${money(p.cost)}</td>
+    <td class="amount">${money(p.price)}</td>
+    <td class="amount">${Number(p.qty||0).toLocaleString('en-NG',{maximumFractionDigits:2})}</td>
+  </tr>`).join('');
+
+  const generated=new Date().toLocaleString('en-NG');
+  const content=items.length?`<table>
+    <thead><tr><th>#</th><th>Product name</th><th>SKU</th><th>Category</th><th>Unit</th><th>Cost price</th><th>Selling price</th><th>Stock on hand</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`:`<div class="empty">There are no products in this catalogue yet.</div>`;
+
+  printWindow.document.open();
+  printWindow.document.write(`<!doctype html>
+  <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LAZIZ-Products-Stock-Catalogue</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;color:#17251f;margin:0;padding:24px;font-size:10px}
+    .heading{border-bottom:2px solid #176b4b;padding-bottom:12px;margin-bottom:16px}
+    h1{font-size:20px;margin:0 0 5px;color:#123b2b}
+    .business{font-size:12px;font-weight:bold;margin-bottom:5px}
+    .meta{color:#65736b;font-size:9px;line-height:1.6}
+    .summary{display:flex;justify-content:space-between;gap:12px;margin:12px 0 16px;padding:9px 11px;background:#f0f5f1;border-radius:5px;font-size:10px}
+    table{width:100%;border-collapse:collapse;table-layout:auto}
+    thead{display:table-header-group}
+    tfoot{display:table-footer-group}
+    th{background:#173e2d;color:#fff;text-align:left;font-size:8px;text-transform:uppercase;letter-spacing:.25px;padding:8px 5px}
+    td{border-bottom:1px solid #e4eae5;padding:7px 5px;vertical-align:top;font-size:8.5px;overflow-wrap:anywhere}
+    tbody tr{break-inside:avoid;page-break-inside:avoid}
+    tbody tr:nth-child(even){background:#f7f9f7}
+    .number,.amount{text-align:right;white-space:nowrap}
+    .product{font-weight:bold;min-width:95px}
+    .empty{padding:30px;text-align:center;color:#65736b}
+    .note{margin-top:14px;color:#65736b;font-size:8px}
+    @page{size:A4 landscape;margin:12mm 10mm 16mm}
+    @media print{
+      body{padding:0}
+      .summary{break-inside:avoid;page-break-inside:avoid}
+    }
+  </style></head><body>
+    <div class="heading">
+      <h1>LAZIZ — Products & Stock Catalogue</h1>
+      <div class="business">${esc(b.name||'Business')}</div>
+      <div class="meta">Complete product catalogue · Generated ${esc(generated)}</div>
+    </div>
+    <div class="summary"><span><b>Total products:</b> ${items.length}</span><span><b>Stock units:</b> ${items.reduce((sum,p)=>sum+Number(p.qty||0),0).toLocaleString('en-NG',{maximumFractionDigits:2})}</span></div>
+    ${content}
+    <div class="note">This catalogue contains all products saved in the LAZIZ Products & Stock area.</div>
+    <script>
+      window.addEventListener('load',function(){
+        setTimeout(function(){window.focus();window.print();},300);
+      });
+    <\/script>
+  </body></html>`);
+  printWindow.document.close();
 }
 
 function productModal(id){
