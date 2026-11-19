@@ -902,18 +902,24 @@ function dashboard(){
 
 function salesTable(items){
   return items.length?`<div class="table-wrap"><table>
-    <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Payment</th><th>Subtotal</th><th>Discount</th><th>Balance paid</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody>${items.map(s=>`<tr>
-      <td><strong>${esc(s.receipt)}</strong></td>
-      <td>${new Date(s.date).toLocaleString()}</td>
-      <td>${esc(s.customer||'Walk-in')}</td>
-      <td>${esc(s.payment)}</td>
-      <td>${money(s.subtotal??s.total)}</td>
-      <td>${money(s.discount||0)}</td>
-      <td><strong>${money(s.total)}</strong></td>
-      <td><span class="pill ${s.refunded?'red':''}">${s.refunded?'Refunded':'Completed'}</span></td>
-      <td>${s.refunded?'—':`<button class="btn secondary small" onclick="refundSale('${s.id}')">Refund</button>`}</td>
-    </tr>`).join('')}</tbody>
+    <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Items purchased</th><th>Payment</th><th>Subtotal</th><th>Discount</th><th>Balance paid</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${items.map(s=>{
+      const itemDetails=(s.lines||[]).length
+        ?s.lines.map(l=>`<div style="padding:2px 0"><b>${esc(l.name||'Product')}</b><br><small>${Number(l.qty)||0} ${esc(l.unit||'unit')}${Number(l.qty)===1?'':'s'} × ${money(l.price)} = ${money((Number(l.qty)||0)*(Number(l.price)||0))}</small></div>`).join('')
+        :'<span class="muted">Item details unavailable</span>';
+      return `<tr>
+        <td><strong>${esc(s.receipt)}</strong></td>
+        <td>${new Date(s.date).toLocaleString()}</td>
+        <td>${esc(s.customer||'Walk-in')}</td>
+        <td style="white-space:normal;min-width:190px">${itemDetails}</td>
+        <td>${esc(s.payment||'—')}</td>
+        <td>${money(s.subtotal??s.total)}</td>
+        <td>${money(s.discount||0)}</td>
+        <td><strong>${money(s.total)}</strong></td>
+        <td><span class="pill ${s.refunded?'red':''}">${s.refunded?'Refunded':'Completed'}</span></td>
+        <td>${s.refunded?'—':`<button class="btn secondary small" onclick="refundSale('${s.id}')">Refund</button>`}</td>
+      </tr>`;
+    }).join('')}</tbody>
   </table></div>`:'<div class="empty">No sales recorded yet. Start with a new sale.</div>';
 }
 
@@ -1166,15 +1172,30 @@ function refundSale(id){
   toast('Refund recorded and stock restored');
 }
 
-/* SALES HISTORY WITH DATE FILTERS */
+/* SALES HISTORY WITH DAILY TOTALS, DATE FILTERS AND REPORT DOWNLOADS */
+function localDateKey(value){
+  const d=value instanceof Date?value:new Date(value);
+  if(Number.isNaN(d.getTime()))return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 function sales(){
   let b=biz();
-  $('#main').innerHTML=head('Sales history','Review completed transactions and receipts.')+
+  const today=localDateKey(new Date());
+  const todaySales=b.sales.filter(s=>localDateKey(s.date)===today&&!s.refunded);
+  const todayAmount=todaySales.reduce((sum,s)=>sum+Number(s.total||0),0);
+  const todayQuantity=todaySales.reduce((sum,s)=>sum+(s.lines||[]).reduce((n,line)=>n+Number(line.qty||0),0),0);
+  $('#main').innerHTML=head('Sales history','Review completed transactions, purchased items and receipts.')+
   `<div class="cards">
+    ${stat("Today's total sales",money(todayAmount),'Completed sales after discounts')}
+    ${stat('Products sold today',todayQuantity.toLocaleString('en-NG'),'Total item quantities sold')}
+    ${stat("Today's transactions",todaySales.length,'Completed sales recorded today')}
+  </div>
+  <div class="cards">
     ${stat('All transactions',b.sales.length,'Recorded sales')}
-    ${stat('Total sales',money(b.sales.reduce((a,s)=>a+s.total,0)),'After discounts')}
-    ${stat('Discounts given',money(b.sales.reduce((a,s)=>a+(s.discount||0),0)),'Member/customer discounts')}
-    ${stat('Gross profit',money(b.sales.reduce((a,s)=>a+s.profit,0)),'Estimated')}
+    ${stat('Total sales',money(b.sales.reduce((a,s)=>a+Number(s.total||0),0)),'After discounts')}
+    ${stat('Discounts given',money(b.sales.reduce((a,s)=>a+Number(s.discount||0),0)),'Member/customer discounts')}
+    ${stat('Gross profit',money(b.sales.reduce((a,s)=>a+Number(s.profit||0),0)),'Estimated')}
   </div>
   <div class="panel">
     <h3>Filter sales by date</h3>
@@ -1188,36 +1209,115 @@ function sales(){
     </div>
   </div>
   <div class="panel">
-    <h3>Transactions</h3>
+    <div class="row between" style="gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <h3 style="margin:0">Transactions</h3>
+      <div class="toolbar">
+        <button class="btn secondary small" onclick="downloadSalesReportCSV()">Download report CSV</button>
+        <button class="btn small" onclick="printSalesReport()">Print / Save PDF</button>
+      </div>
+    </div>
+    <p class="muted" style="font-size:11px;margin:0 0 12px">The report download follows the selected date range. Choose “Show all sales” to include every transaction.</p>
     <div id="salesresults">${salesTable(b.sales.slice().reverse())}</div>
   </div>`;
 
   filterSales();
 }
 
-function filterSales(){
+function getSalesForCurrentFilter(){
   let b=biz();
   let from=$('#salesfrom')?.value||'';
   let to=$('#salesto')?.value||'';
-
   if(from&&to&&from>to){
     toast('The start date cannot be after the end date');
-    return;
+    return null;
   }
-
-  let filtered=b.sales.filter(s=>{
-    let date=new Date(s.date);
-    let day=date.toISOString().slice(0,10);
+  return b.sales.filter(s=>{
+    const day=localDateKey(s.date);
     return(!from||day>=from)&&(!to||day<=to);
-  });
+  }).slice().reverse();
+}
 
-  $('#salesresults').innerHTML=salesTable(filtered.slice().reverse());
+function filterSales(){
+  const filtered=getSalesForCurrentFilter();
+  if(!filtered)return;
+  const target=$('#salesresults');
+  if(target)target.innerHTML=salesTable(filtered);
 }
 
 function clearSalesFilter(){
   if($('#salesfrom'))$('#salesfrom').value='';
   if($('#salesto'))$('#salesto').value='';
-  $('#salesresults').innerHTML=salesTable(biz().sales.slice().reverse());
+  filterSales();
+}
+
+function salesReportRows(items){
+  const rows=[['Receipt','Date','Customer','Payment','Item','Quantity','Unit','Unit price','Line total','Subtotal','Discount','Balance paid','Status']];
+  items.forEach(s=>{
+    const lines=(s.lines||[]);
+    if(!lines.length){
+      rows.push([s.receipt,s.date,s.customer||'Walk-in',s.payment||'', 'Item details unavailable','','','','',s.subtotal??s.total,s.discount||0,s.total,s.refunded?'Refunded':'Completed']);
+    }else{
+      lines.forEach(line=>rows.push([
+        s.receipt,s.date,s.customer||'Walk-in',s.payment||'',line.name||'Product',
+        Number(line.qty||0),line.unit||'',Number(line.price||0),
+        Number(line.qty||0)*Number(line.price||0),s.subtotal??s.total,
+        s.discount||0,s.total,s.refunded?'Refunded':'Completed'
+      ]));
+    }
+  });
+  return rows;
+}
+
+function downloadSalesReportCSV(){
+  const items=getSalesForCurrentFilter();
+  if(!items)return;
+  if(!items.length)return toast('There are no sales in the selected date range');
+  const rows=salesReportRows(items);
+  const csv='\uFEFF'+rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='laziz-sales-history-'+localDateKey(new Date())+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('Sales report downloaded');
+}
+
+function printSalesReport(){
+  const items=getSalesForCurrentFilter();
+  if(!items)return;
+  if(!items.length)return toast('There are no sales in the selected date range');
+  const reportWindow=window.open('','_blank');
+  if(!reportWindow)return toast('Allow pop-ups for LAZIZ to print or save the report as PDF');
+  const b=biz();
+  const rows=items.map(s=>{
+    const lineRows=(s.lines||[]).length
+      ?s.lines.map(line=>`<tr><td>${esc(line.name||'Product')}</td><td>${Number(line.qty||0)} ${esc(line.unit||'')}</td><td>${money(line.price)}</td><td>${money(Number(line.qty||0)*Number(line.price||0))}</td></tr>`).join('')
+      :'<tr><td colspan="4">Item details unavailable</td></tr>';
+    return `<section class="sale">
+      <h3>${esc(s.receipt||'Sale')} <small>${s.refunded?'REFUNDED':'COMPLETED'}</small></h3>
+      <p><b>Date:</b> ${esc(new Date(s.date).toLocaleString())} &nbsp; <b>Customer:</b> ${esc(s.customer||'Walk-in')} &nbsp; <b>Payment:</b> ${esc(s.payment||'—')}</p>
+      <table><thead><tr><th>Item</th><th>Quantity</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>${lineRows}</tbody></table>
+      <div class="totals">Subtotal: ${money(s.subtotal??s.total)}<br>Discount: ${money(s.discount||0)}<br><b>Balance paid: ${money(s.total)}</b></div>
+    </section>`;
+  }).join('');
+  const from=$('#salesfrom')?.value||'All dates';
+  const to=$('#salesto')?.value||'';
+  reportWindow.document.open();
+  reportWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LAZIZ Sales History</title><style>
+    body{font:13px Arial,sans-serif;color:#17251e;margin:24px}h1{margin:0 0 5px;color:#174d38}h2{margin:0 0 18px;font-size:15px;color:#526159}
+    .meta{margin:14px 0 22px;padding:12px;background:#f1f5f2;border-radius:7px}.sale{border:1px solid #dfe7e1;border-radius:8px;padding:14px;margin:0 0 16px;break-inside:avoid}
+    .sale h3{margin:0 0 8px}.sale h3 small{font-size:10px;color:#68776e}.sale p{font-size:11px;line-height:1.7}
+    table{width:100%;border-collapse:collapse;margin:10px 0}th,td{text-align:left;padding:7px;border-bottom:1px solid #e5ebe7;font-size:11px}
+    th{background:#f3f6f3}.totals{text-align:right;line-height:1.8;font-size:11px}.foot{margin-top:20px;color:#758078;font-size:10px}
+    @media print{body{margin:12mm}.sale{break-inside:avoid}button{display:none}}
+  </style></head><body><h1>LAZIZ — ${esc(b.name||'Business')}</h1><h2>Sales History Report</h2>
+  <div class="meta"><b>Report period:</b> ${esc(from)}${to?' to '+esc(to):''}<br><b>Transactions:</b> ${items.length}<br><b>Report generated:</b> ${esc(new Date().toLocaleString())}</div>
+  ${rows}<p class="foot">Generated from LAZIZ Business Management.</p><script>window.onload=function(){window.focus();window.print();};<\/script></body></html>`);
+  reportWindow.document.close();
 }
 
 function people(type){
