@@ -904,25 +904,66 @@ function salesTable(items){
   return items.length?`<div class="table-wrap"><table>
     <thead><tr><th>Receipt</th><th>Date</th><th>Customer</th><th>Items purchased</th><th>Payment</th><th>Subtotal</th><th>Discount</th><th>Balance paid</th><th>Status</th><th>Action</th></tr></thead>
     <tbody>${items.map(s=>{
-      const itemDetails=(s.lines||[]).length
-        ?s.lines.map(l=>`<div style="padding:2px 0"><b>${esc(l.name||'Product')}</b><br><small>${Number(l.qty)||0} ${esc(l.unit||'unit')}${Number(l.qty)===1?'':'s'} × ${money(l.price)} = ${money((Number(l.qty)||0)*(Number(l.price)||0))}</small></div>`).join('')
+      const lines=Array.isArray(s.lines)?s.lines:[];
+      const firstLine=lines[0];
+      const itemSummary=firstLine
+        ?`<button type="button" class="btn secondary small" style="display:block;text-align:left;white-space:normal;max-width:240px" onclick="toggleSaleItems('${esc(s.id)}')" aria-expanded="false" id="sale-items-toggle-${esc(s.id)}">
+            <strong style="display:block;color:var(--ink)">${esc(firstLine.name||'Product')}</strong>
+            <span style="font-size:10px;color:var(--muted)">${lines.length>1?`+${lines.length-1} more · ${lines.length} products`:'1 product'} · View items ▾</span>
+          </button>`
         :'<span class="muted">Item details unavailable</span>';
+      const detailRows=lines.map(line=>`<tr>
+        <td><strong>${esc(line.name||'Product')}</strong></td>
+        <td>${Number(line.qty)||0} ${esc(line.unit||'unit')}</td>
+        <td>${money(line.price)}</td>
+        <td><strong>${money((Number(line.qty)||0)*(Number(line.price)||0))}</strong></td>
+      </tr>`).join('');
+      const details=lines.length?`
+        <div style="padding:12px;background:#f8faf8;border:1px solid var(--line);border-radius:9px;white-space:normal">
+          <div style="font-weight:800;margin-bottom:9px">Products purchased (${lines.length})</div>
+          <div class="table-wrap"><table style="min-width:520px">
+            <thead><tr><th>Product</th><th>Quantity</th><th>Unit price</th><th>Line total</th></tr></thead>
+            <tbody>${detailRows}</tbody>
+          </table></div>
+          <div style="max-width:360px;margin:12px 0 0 auto;font-size:12px;line-height:1.9">
+            <div class="row between"><span>Subtotal</span><b>${money(s.subtotal??s.total)}</b></div>
+            <div class="row between"><span>Discount</span><b>−${money(s.discount||0)}</b></div>
+            <div class="row between" style="border-top:1px solid var(--line);padding-top:7px;margin-top:5px;font-size:14px"><strong>Grand total</strong><strong style="color:var(--green)">${money(s.total)}</strong></div>
+          </div>
+        </div>`:'<div class="empty">Item details are not available for this transaction.</div>';
       return `<tr>
         <td><strong>${esc(s.receipt)}</strong></td>
         <td>${new Date(s.date).toLocaleString()}</td>
         <td>${esc(s.customer||'Walk-in')}</td>
-        <td style="white-space:normal;min-width:190px">${itemDetails}</td>
+        <td style="white-space:normal;min-width:170px">${itemSummary}</td>
         <td>${esc(s.payment||'—')}</td>
         <td>${money(s.subtotal??s.total)}</td>
         <td>${money(s.discount||0)}</td>
         <td><strong>${money(s.total)}</strong></td>
         <td><span class="pill ${s.refunded?'red':''}">${s.refunded?'Refunded':'Completed'}</span></td>
-        <td>${s.refunded?'—':`<button class="btn secondary small" onclick="refundSale('${s.id}')">Refund</button>`}</td>
+        <td>${s.refunded?'—':`<button class="btn secondary small" onclick="refundSale('${esc(s.id)}')">Refund</button>`}</td>
+      </tr>
+      <tr id="sale-items-${esc(s.id)}" style="display:none">
+        <td colspan="10" style="padding:10px 12px;background:#fbfcfb">${details}</td>
       </tr>`;
     }).join('')}</tbody>
   </table></div>`:'<div class="empty">No sales recorded yet. Start with a new sale.</div>';
 }
 
+function toggleSaleItems(id){
+  const details=document.getElementById('sale-items-'+id);
+  const toggle=document.getElementById('sale-items-toggle-'+id);
+  if(!details||!toggle)return;
+  const isOpening=details.style.display==='none'||!details.style.display;
+  details.style.display=isOpening?'table-row':'none';
+  toggle.setAttribute('aria-expanded',String(isOpening));
+  const caption=toggle.querySelector('span');
+  if(caption){
+    const sale=biz()?.sales?.find(item=>String(item.id)===String(id));
+    const count=(sale?.lines||[]).length;
+    caption.textContent=isOpening?'Hide items ▴':`${Math.max(0,count-1)}${count>1?' more · ':''}${count} ${count===1?'product':'products'} · View items ▾`;
+  }
+}
 function products(){
   let b=biz();
   $('#main').innerHTML=head('Products & inventory','Manage building materials, units, pricing and stock.','<button class="btn" onclick="productModal()">＋ Add product</button>')+
